@@ -1,6 +1,7 @@
 package net.ragdot.featherfall.client;
 
 import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.fabric.api.client.rendering.v1.EntityModelLayerRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.VertexConsumerProvider;
@@ -12,6 +13,7 @@ import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.Identifier;
 import net.ragdot.featherfall.Featherfall;
+import net.ragdot.featherfall.client.model.ScorchedUtopiaModel;
 import net.ragdot.featherfall.entities.CustomStand;
 import net.ragdot.featherfall.entities.ScorchedUtopia;
 
@@ -19,23 +21,26 @@ public class FeatherfallClient implements ClientModInitializer {
 
     @Override
     public void onInitializeClient() {
-        // Base / default stand
+        // 1) register model layer for ScorchedUtopia Blockbench model
+        EntityModelLayerRegistry.registerModelLayer(
+                ModModelLayers.SCORCHED_UTOPIA,
+                ScorchedUtopiaModel::getTexturedModelData
+        );
+
+        // 2) base / default stand uses vanilla biped
         EntityRendererRegistry.register(
                 Featherfall.CUSTOM_STAND,
                 ctx -> new StandRenderer<>(ctx, "stand")
         );
 
-        // ScorchedUtopia stand
+        // 3) ScorchedUtopia uses custom Blockbench model
         EntityRendererRegistry.register(
                 Featherfall.SCORCHED_UTOPIA,
-                ctx -> new StandRenderer<>(ctx, "scorched_utopia")
+                ScorchedUtopiaRenderer::new
         );
     }
 
-    /**
-     * Generic stand renderer usable for any CustomStand subclass.
-     * Uses a biped model with a per-stand texture.
-     */
+    // ===== Generic renderer for base stands (Biped model) =====
     public static class StandRenderer<T extends CustomStand> extends MobEntityRenderer<T, BipedEntityModel<T>> {
 
         private final Identifier texture;
@@ -48,7 +53,6 @@ public class FeatherfallClient implements ClientModInitializer {
             );
         }
 
-        // Hide stand when it's too close to its owner (your original logic, now generic)
         @Override
         public void render(T entity, float yaw, float tickDelta,
                            MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light) {
@@ -72,7 +76,6 @@ public class FeatherfallClient implements ClientModInitializer {
             double dz = stand.getZ() - owner.getZ();
             double distSq = dx * dx + dy * dy + dz * dz;
 
-            // hide if closer than ~1.0 block
             return distSq < 1.0;
         }
 
@@ -81,5 +84,48 @@ public class FeatherfallClient implements ClientModInitializer {
             return texture;
         }
     }
+
+    // ===== Renderer that uses Blockbench model for ScorchedUtopia =====
+    public static class ScorchedUtopiaRenderer
+            extends MobEntityRenderer<ScorchedUtopia, ScorchedUtopiaModel> {
+
+        private static final Identifier TEXTURE = Identifier.of(
+                Featherfall.MOD_ID,
+                "textures/entity/scorched_utopia.png"
+        );
+
+        public ScorchedUtopiaRenderer(EntityRendererFactory.Context ctx) {
+            super(ctx,
+                    new ScorchedUtopiaModel(ctx.getPart(ModModelLayers.SCORCHED_UTOPIA)),
+                    0.5f
+            );
+        }
+
+        @Override
+        public void render(ScorchedUtopia entity, float yaw, float tickDelta,
+                           MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light) {
+
+            // reuse your “hide when too close” rule
+            PlayerEntity owner = entity.getOwner();
+            if (owner != null) {
+                MinecraftClient client = MinecraftClient.getInstance();
+                if (client.player == owner) {
+                    double dx = entity.getX() - owner.getX();
+                    double dy = entity.getEyeY() - owner.getEyeY();
+                    double dz = entity.getZ() - owner.getZ();
+                    double distSq = dx * dx + dy * dy + dz * dz;
+                    if (distSq < 1.0) return;
+                }
+            }
+
+            super.render(entity, yaw, tickDelta, matrices, vertexConsumers, light);
+        }
+
+        @Override
+        public Identifier getTexture(ScorchedUtopia entity) {
+            return TEXTURE;
+        }
+    }
 }
+
 

@@ -6,7 +6,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.Hand;
 import net.minecraft.util.TypedActionResult;
-import net.minecraft.util.hit.HitResult;
 import net.minecraft.world.World;
 import net.ragdot.featherfall.Featherfall;
 import net.ragdot.featherfall.entities.ScorchedUtopia;
