@@ -18,19 +18,12 @@ public class ModItems {
     }
 
     public static void registerModItems() {
-        Gestaltresonance.LOGGER.info("Registering Mod Items for" + Gestaltresonance.MOD_ID);
+        Gestaltresonance.LOGGER.info("Registering Mod Items for " + Gestaltresonance.MOD_ID);
 
         ItemGroupEvents.modifyEntriesEvent(ItemGroups.INGREDIENTS).register(entries -> {
             entries.add(POKEY_FEATHER);
-        });
-
-        ItemGroupEvents.modifyEntriesEvent(ItemGroups.INGREDIENTS).register(entries -> {
             entries.add(ROTTEN_FEATHER);
-        });
-
-        ItemGroupEvents.modifyEntriesEvent(ItemGroups.INGREDIENTS).register(entries -> {
             entries.add(ROTTEN_ESSENCE);
         });
-
     }
 }

@@ -5,7 +5,7 @@ import net.minecraft.entity.attribute.DefaultAttributeContainer;
 import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.world.World;
 
-public class ScorchedUtopia extends CustomStand {
+public class ScorchedUtopia extends GestaltBase {
 
     public ScorchedUtopia(EntityType<? extends ScorchedUtopia> type, World world) {
         super(type, world);
@@ -13,7 +13,7 @@ public class ScorchedUtopia extends CustomStand {
 
     // Attributes specific to this stand (can override base)
     public static DefaultAttributeContainer.Builder createAttributes() {
-        return CustomStand.createBaseStandAttributes()
+        return GestaltBase.createBaseStandAttributes()
                 .add(EntityAttributes.GENERIC_MAX_HEALTH, 30.0); // example: more HP
         // add any extra attributes specific to this stand here
     }

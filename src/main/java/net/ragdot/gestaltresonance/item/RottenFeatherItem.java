@@ -29,7 +29,7 @@ public class RottenFeatherItem extends Item {
                         ScorchedUtopia.class,
                         user.getBoundingBox().expand(256.0),
                         stand -> {
-                            var uuid = stand.getOwnerUuid(); // from base CustomStand
+                            var uuid = stand.getOwnerUuid(); // from base GestaltBase
                             return uuid != null && uuid.equals(user.getUuid());
                         }
                 );

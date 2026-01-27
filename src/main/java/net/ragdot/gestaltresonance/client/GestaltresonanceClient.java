@@ -14,7 +14,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.Identifier;
 import net.ragdot.gestaltresonance.Gestaltresonance;
 import net.ragdot.gestaltresonance.client.model.ScorchedUtopiaModel;
-import net.ragdot.gestaltresonance.entities.CustomStand;
+import net.ragdot.gestaltresonance.entities.GestaltBase;
 import net.ragdot.gestaltresonance.entities.ScorchedUtopia;
 
 public class GestaltresonanceClient implements ClientModInitializer {
@@ -41,7 +41,7 @@ public class GestaltresonanceClient implements ClientModInitializer {
     }
 
     // ===== Generic renderer for base stands (Biped model) =====
-    public static class StandRenderer<T extends CustomStand> extends MobEntityRenderer<T, BipedEntityModel<T>> {
+    public static class StandRenderer<T extends GestaltBase> extends MobEntityRenderer<T, BipedEntityModel<T>> {
 
         private final Identifier texture;
 

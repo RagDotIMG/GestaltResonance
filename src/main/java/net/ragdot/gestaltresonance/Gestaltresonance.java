@@ -14,7 +14,7 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
-import net.ragdot.gestaltresonance.entities.CustomStand;
+import net.ragdot.gestaltresonance.entities.GestaltBase;
 import net.ragdot.gestaltresonance.entities.ScorchedUtopia;
 import net.ragdot.gestaltresonance.item.ModItems;
 import org.slf4j.Logger;
@@ -26,11 +26,11 @@ public class Gestaltresonance implements ModInitializer {
     public static final String MOD_ID = "gestaltresonance";
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
-    public static final EntityType<CustomStand> CUSTOM_STAND = Registry.register(
+    public static final EntityType<GestaltBase> CUSTOM_STAND = Registry.register(
             Registries.ENTITY_TYPE,
             Identifier.of(MOD_ID, "stand"),
             EntityType.Builder
-                    .<CustomStand>create(CustomStand::new, SpawnGroup.MISC)
+                    .<GestaltBase>create(GestaltBase::new, SpawnGroup.MISC)
                     .dimensions(0.5f, 1.6f)
                     .build("stand")
     );
@@ -47,7 +47,7 @@ public class Gestaltresonance implements ModInitializer {
     @Override
     public void onInitialize() {
         ModItems.registerModItems();
-        FabricDefaultAttributeRegistry.register(CUSTOM_STAND, CustomStand.createBaseStandAttributes());
+        FabricDefaultAttributeRegistry.register(CUSTOM_STAND, GestaltBase.createBaseStandAttributes());
         FabricDefaultAttributeRegistry.register(SCORCHED_UTOPIA, ScorchedUtopia.createAttributes());
 
         registerCommands();
@@ -86,7 +86,7 @@ public class Gestaltresonance implements ModInitializer {
     }
 
     public void summonStand(World world, BlockPos pos, PlayerEntity owner) {
-        CustomStand stand = new CustomStand(CUSTOM_STAND, world);
+        GestaltBase stand = new GestaltBase(CUSTOM_STAND, world);
         stand.setOwner(owner);
 
         stand.refreshPositionAndAngles(
@@ -105,8 +105,8 @@ public class Gestaltresonance implements ModInitializer {
             return; // commands run on server, but be safe
         }
 
-        List<CustomStand> stands = serverWorld.getEntitiesByClass(
-                CustomStand.class,
+        List<GestaltBase> stands = serverWorld.getEntitiesByClass(
+                GestaltBase.class,
                 owner.getBoundingBox().expand(256.0), // big radius around player
                 stand -> {
                     // match by live owner reference OR by stored UUID
@@ -116,7 +116,7 @@ public class Gestaltresonance implements ModInitializer {
                 }
         );
 
-        for (CustomStand stand : stands) {
+        for (GestaltBase stand : stands) {
             stand.discard();
         }
     }
