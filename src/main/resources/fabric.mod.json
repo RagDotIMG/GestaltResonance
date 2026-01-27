@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "id": "featherfall",
+  "version": "${version}",
+  "name": "FeatherFall",
+  "description": "JoJo esk stands",
+  "authors": ["Emma & Rag :)"],
+  "contact": {},
+  "license": "All-Rights-Reserved",
+  "icon": "icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "fabric-datagen": [
+      "net.ragdot.featherfall.client.FeatherfallDataGenerator"
+    ],
+    "client": [
+      "net.ragdot.featherfall.client.FeatherfallClient"
+    ],
+    "main": [
+      "net.ragdot.featherfall.Featherfall"
+    ]
+  },
+  "mixins": [
+    "featherfall.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=${loader_version}",
+    "fabric-api": "*",
+    "minecraft": "${minecraft_version}"
+
+  }
+}

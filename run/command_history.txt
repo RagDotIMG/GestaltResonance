@@ -1,0 +1,17 @@
+/gamemode
+/gamemode creative
+/summonStand
+/su
+/summonStand
+/su
+/summonStand
+/gamemode creative
+/gamemode survival
+/summonStand
+/despawnStand
+/summonStand
+/dismissStand
+/summonStand
+/gamemode survival
+/gamemode creative
+/gamemode survival
