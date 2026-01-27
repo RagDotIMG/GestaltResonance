@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
-  "id": "featherfall",
+  "id": "gestaltresonance",
   "version": "${version}",
-  "name": "FeatherFall",
-  "description": "JoJo esk stands",
+  "name": "GestaltResonance",
+  "description": "JJBA inspired mod that aims to bring you fun companions called Gestalten to help you :)",
   "authors": ["Emma & Rag :)"],
   "contact": {},
   "license": "All-Rights-Reserved",
@@ -11,17 +11,17 @@
   "environment": "*",
   "entrypoints": {
     "fabric-datagen": [
-      "net.ragdot.featherfall.client.FeatherfallDataGenerator"
+      "net.ragdot.gestaltresonance.client.GestaltresonanceDataGenerator"
     ],
     "client": [
-      "net.ragdot.featherfall.client.FeatherfallClient"
+      "net.ragdot.gestaltresonance.client.GestaltresonanceClient"
     ],
     "main": [
-      "net.ragdot.featherfall.Featherfall"
+      "net.ragdot.gestaltresonance.Gestaltresonance"
     ]
   },
   "mixins": [
-    "featherfall.mixins.json"
+    "gestaltresonance.mixins.json"
   ],
   "depends": {
     "fabricloader": ">=${loader_version}",

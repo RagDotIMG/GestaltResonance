@@ -16,3 +16,8 @@
 /gamemode creative
 /gamemode survival
 /gamemode creative
+/summonStand
+/gamemode creative
+/gamemode survival
+/gamemode creative
+/gamemode survival

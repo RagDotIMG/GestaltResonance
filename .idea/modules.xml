@@ -2,8 +2,8 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/FeatherFall.main.iml" filepath="$PROJECT_DIR$/.idea/modules/FeatherFall.main.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/FeatherFall.test.iml" filepath="$PROJECT_DIR$/.idea/modules/FeatherFall.test.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/GestaltResonance.main.iml" filepath="$PROJECT_DIR$/.idea/modules/GestaltResonance.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/GestaltResonance.test.iml" filepath="$PROJECT_DIR$/.idea/modules/GestaltResonance.test.iml" />
     </modules>
   </component>
 </project>

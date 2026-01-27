@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    { "item": "gestaltresonance:pokey_feather" },
+    { "item": "gestaltresonance:rotten_essence" }
+  ],
+  "result": {
+    "item": "gestaltresonance:rotten_feather",
+    "count": 1
+  }
+}
