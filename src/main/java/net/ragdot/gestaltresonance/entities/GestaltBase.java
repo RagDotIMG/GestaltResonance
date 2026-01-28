@@ -255,37 +255,6 @@ public class GestaltBase extends MobEntity {
     }
 
 
-    // ===== Gestalt Throw =====
-    /**
-     * When the owner has this Gestalt summoned and does a crouch + jump,
-     * the Gestalt throws the owner into the air, giving them forward velocity.
-     */
-    protected void handleSuperJump() {
-        if (owner == null) return;
-
-        boolean onGroundNow = owner.isOnGround();
-        boolean sneakingNow = owner.isSneaking();
-
-        // Detect jump start: was on ground last tick, now off ground
-        if (ownerWasOnGround && !onGroundNow) {
-            // Only boost if the player was sneaking while still on the ground
-            if (ownerWasSneakingOnGround) {
-                // Extra upward velocity; vanilla jump is ~0.42
-                double extraY = 0.42; // roughly +1 extra block of height
-                owner.addVelocity(0.0, extraY, 0.0);
-                owner.velocityDirty = true;
-
-                // Optional: log once to confirm it fires
-                //Gestaltresonance.LOGGER.info("Super jump applied: extraY=" + extraY);
-            }
-        }
-
-        // Update history for next tick
-        ownerWasSneakingOnGround = onGroundNow && sneakingNow;
-        ownerWasOnGround = onGroundNow;
-    }
-
-
     // ===== Following behavior (can be overridden per stand) =====
     protected void updatePositionToOwner() {
         double playerX = owner.getX();
@@ -332,8 +301,8 @@ public class GestaltBase extends MobEntity {
         }
 
         // Only transfer a fraction of the damage to the player
-        float transferred = amount / 3.0f;
-        if (transferred <= 0.0f) {
+        float transferred = amount / 0.5f;
+        if (transferred <= 0.1f) {
             return false;
         }
 
