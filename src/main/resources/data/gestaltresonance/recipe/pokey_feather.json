@@ -1,0 +1,16 @@
+{
+  "type": "crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "# ",
+    " X"
+  ],
+  "key": {
+    "#": { "item": "minecraft:feather" },
+    "X": { "item": "minecraft:iron_nugget" }
+  },
+  "result": {
+    "id": "gestaltresonance:pokey_feather",
+    "count": 1
+  }
+}

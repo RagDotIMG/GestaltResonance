@@ -1,11 +1,15 @@
 package net.ragdot.gestaltresonance.entities;
 
+import net.minecraft.entity.AnimationState;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.attribute.DefaultAttributeContainer;
 import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.world.World;
 
 public class ScorchedUtopia extends GestaltBase {
+
+    public final AnimationState idleAnimationState = new AnimationState();
+    private int idleAnimationTimeout = 0;
 
     public ScorchedUtopia(EntityType<? extends ScorchedUtopia> type, World world) {
         super(type, world);
@@ -14,14 +18,11 @@ public class ScorchedUtopia extends GestaltBase {
     // Attributes specific to this stand (can override base)
     public static DefaultAttributeContainer.Builder createAttributes() {
         return GestaltBase.createBaseStandAttributes()
-                .add(EntityAttributes.GENERIC_MAX_HEALTH, 30.0); // example: more HP
-        // add any extra attributes specific to this stand here
+                .add(EntityAttributes.GENERIC_MAX_HEALTH, 30.0);
     }
 
     @Override
     protected void updatePositionToOwner() {
-        // Optionally tweak offsets just for ScorchedUtopia
-        // Example: a bit further back and higher
         double playerX = owner.getX();
         double playerY = owner.getY();
         double playerZ = owner.getZ();
@@ -45,5 +46,24 @@ public class ScorchedUtopia extends GestaltBase {
         this.refreshPositionAndAngles(targetX, targetY, targetZ, yaw, this.getPitch());
     }
 
-    // Later: add special abilities for this stand (fire effects, attacks, etc.)
+    // === Combat tuning for Scorched Utopia ===
+    @Override
+    protected double getMaxChaseRange() {
+        return 5.0; // can chase a bit further
+    }
+
+    @Override
+    protected double getAttackReach() {
+        return 5.0; // slightly longer punch
+    }
+
+    @Override
+    protected float getAttackDamage() {
+        return 4.0f; // 2 hearts
+    }
+
+    @Override
+    protected int getAttackCooldownTicks() {
+        return 10; // faster punches than default
+    }
 }

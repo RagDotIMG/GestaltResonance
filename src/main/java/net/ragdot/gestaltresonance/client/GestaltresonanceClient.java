@@ -1,26 +1,60 @@
 package net.ragdot.gestaltresonance.client;
 
 import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
+import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityModelLayerRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
+import net.ragdot.gestaltresonance.network.ToggleGestaltSummonPayload;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.entity.EntityRendererFactory;
 import net.minecraft.client.render.entity.MobEntityRenderer;
 import net.minecraft.client.render.entity.model.BipedEntityModel;
 import net.minecraft.client.render.entity.model.EntityModelLayers;
+import net.minecraft.client.util.InputUtil;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.Identifier;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import org.lwjgl.glfw.GLFW;
+
 import net.ragdot.gestaltresonance.Gestaltresonance;
+import net.ragdot.gestaltresonance.GestaltNetworking;
 import net.ragdot.gestaltresonance.client.model.ScorchedUtopiaModel;
 import net.ragdot.gestaltresonance.entities.GestaltBase;
 import net.ragdot.gestaltresonance.entities.ScorchedUtopia;
 
 public class GestaltresonanceClient implements ClientModInitializer {
 
+    // Client-side key binding: “summon / dismiss Gestalt”
+    private static KeyBinding summonGestaltKey;
+
     @Override
     public void onInitializeClient() {
+        // === Keybind setup ===
+        summonGestaltKey = KeyBindingHelper.registerKeyBinding(
+                new KeyBinding(
+                        "key.gestaltresonance.summon_gestalt", // translation key
+                        InputUtil.Type.KEYSYM,
+                        GLFW.GLFW_KEY_G,                         // default key: G
+                        "category.gestaltresonance.gestalt"      // controls category
+                )
+        );
+
+        // Each client tick, check if the key was pressed and send a packet to the server
+        ClientTickEvents.END_CLIENT_TICK.register(client -> {
+            while (summonGestaltKey.wasPressed()) {
+                if (client.player != null && client.world != null) {
+                    ClientPlayNetworking.send(new ToggleGestaltSummonPayload());
+                }
+            }
+        });
+
+        // === Renderer / model setup ===
+
         // 1) register model layer for ScorchedUtopia Blockbench model
         EntityModelLayerRegistry.registerModelLayer(
                 ModModelLayers.SCORCHED_UTOPIA,
@@ -57,6 +91,7 @@ public class GestaltresonanceClient implements ClientModInitializer {
         public void render(T entity, float yaw, float tickDelta,
                            MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light) {
 
+            // Hide stand if it would clip into the local player’s camera
             if (shouldHideForLocalPlayer(entity)) {
                 return;
             }
@@ -105,7 +140,7 @@ public class GestaltresonanceClient implements ClientModInitializer {
         public void render(ScorchedUtopia entity, float yaw, float tickDelta,
                            MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light) {
 
-            // reuse your “hide when too close” rule
+            // Reuse the “hide when too close to owner” behavior
             PlayerEntity owner = entity.getOwner();
             if (owner != null) {
                 MinecraftClient client = MinecraftClient.getInstance();
@@ -127,5 +162,3 @@ public class GestaltresonanceClient implements ClientModInitializer {
         }
     }
 }
-
-

@@ -3,14 +3,18 @@ package net.ragdot.gestaltresonance.item;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.Hand;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.TypedActionResult;
 import net.minecraft.world.World;
 import net.ragdot.gestaltresonance.Gestaltresonance;
-import net.ragdot.gestaltresonance.entities.ScorchedUtopia;
+import net.ragdot.gestaltresonance.GestaltAssignments;
 
 public class RottenFeatherItem extends Item {
+
+    // This feather corresponds to the Scorched Utopia Gestalt
+    private static final Identifier SCORCHED_UTOPIA_ID =
+            Identifier.of(Gestaltresonance.MOD_ID, "scorched_utopia");
 
     public RottenFeatherItem(Settings settings) {
         super(settings);
@@ -21,60 +25,30 @@ public class RottenFeatherItem extends Item {
         ItemStack stack = user.getStackInHand(hand);
 
         if (!world.isClient) {
-            boolean hadStand = false;
+            // What Gestalt is the player currently assigned to?
+            Identifier current = GestaltAssignments.getAssignedGestalt(user);
 
-            if (world instanceof ServerWorld serverWorld) {
-                // Find all ScorchedUtopia stands owned by this player
-                var stands = serverWorld.getEntitiesByClass(
-                        ScorchedUtopia.class,
-                        user.getBoundingBox().expand(256.0),
-                        stand -> {
-                            var uuid = stand.getOwnerUuid(); // from base GestaltBase
-                            return uuid != null && uuid.equals(user.getUuid());
-                        }
-                );
+            if (current != null && current.equals(SCORCHED_UTOPIA_ID)) {
+                // Already assigned to Scorched Utopia -> unassign
+                GestaltAssignments.clearGestalt(user);
+                // Optional: feedback (chat message or sound)
+                // user.sendMessage(Text.literal("Your bond with Scorched Utopia fades."), true);
+            } else {
+                // Assigned to something else OR nothing -> assign Scorched Utopia
+                GestaltAssignments.assignGestalt(user, SCORCHED_UTOPIA_ID);
+                // Optional: feedback
+                // user.sendMessage(Text.literal("You attune to Scorched Utopia."), true);
 
-                // If any exist, despawn them and mark that we had one
-                if (!stands.isEmpty()) {
-                    hadStand = true;
-                    stands.forEach(ScorchedUtopia::discard);
-                }
-            }
-
-            // Toggle behavior: if player had a stand, we just turned it off
-            if (!hadStand) {
-                // No existing stand -> summon a new one
-
-                // spawn slightly behind and above the player
-                float yaw = user.getYaw();
-                double rad = Math.toRadians(yaw);
-
-                double backOffset = 1.9;
-                double sideOffset = 0.5;
-                double heightOffset = 0.4;
-
-                double backX = -Math.sin(rad);
-                double backZ =  Math.cos(rad);
-                double rightX =  Math.cos(rad);
-                double rightZ =  Math.sin(rad);
-
-                double spawnX = user.getX() + backOffset * backX + sideOffset * rightX;
-                double spawnZ = user.getZ() + backOffset * backZ + sideOffset * rightZ;
-                double spawnY = user.getY() + heightOffset;
-
-                ScorchedUtopia stand = new ScorchedUtopia(Gestaltresonance.SCORCHED_UTOPIA, world);
-                stand.setOwner(user);
-                stand.refreshPositionAndAngles(spawnX, spawnY, spawnZ, user.getYaw(), 0.0f);
-                world.spawnEntity(stand);
-
-
-                /*if (!user.getAbilities().creativeMode) {
-                    stack.decrement(1); // consume only when actually summoning
-                }*/
+                // Optional: consume the feather only when first assigning
+                // if (!user.getAbilities().creativeMode &&
+                //     (current == null || !current.equals(SCORCHED_UTOPIA_ID))) {
+                //     stack.decrement(1);
+                // }
             }
         }
 
         return TypedActionResult.success(stack, world.isClient());
     }
 }
+
 

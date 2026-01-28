@@ -4,6 +4,9 @@
   "package": "net.ragdot.gestaltresonance.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
+    "LivingEntityJumpMixin",
+    "PlayerEntityGestaltJumpFlagMixin",
+    "LivingEntityFallDamageMixin"
   ],
   "client": [
   ],

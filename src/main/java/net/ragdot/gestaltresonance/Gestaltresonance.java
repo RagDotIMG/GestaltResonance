@@ -51,6 +51,7 @@ public class Gestaltresonance implements ModInitializer {
         FabricDefaultAttributeRegistry.register(SCORCHED_UTOPIA, ScorchedUtopia.createAttributes());
 
         registerCommands();
+        GestaltNetworking.registerServerReceivers();
     }
 
     private void registerCommands() {
