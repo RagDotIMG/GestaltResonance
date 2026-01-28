@@ -18,11 +18,8 @@ import net.minecraft.client.util.InputUtil;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.Identifier;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import org.lwjgl.glfw.GLFW;
-
 import net.ragdot.gestaltresonance.Gestaltresonance;
-import net.ragdot.gestaltresonance.GestaltNetworking;
 import net.ragdot.gestaltresonance.client.model.ScorchedUtopiaModel;
 import net.ragdot.gestaltresonance.entities.GestaltBase;
 import net.ragdot.gestaltresonance.entities.ScorchedUtopia;
@@ -61,10 +58,10 @@ public class GestaltresonanceClient implements ClientModInitializer {
                 ScorchedUtopiaModel::getTexturedModelData
         );
 
-        // 2) base / default stand uses vanilla biped
+        // 2) base / default gestalt uses vanilla biped
         EntityRendererRegistry.register(
-                Gestaltresonance.CUSTOM_STAND,
-                ctx -> new StandRenderer<>(ctx, "stand")
+                Gestaltresonance.GESTALT_BASE_ENTITY_TYPE,
+                ctx -> new GestaltRenderer<>(ctx, "gestalt")
         );
 
         // 3) ScorchedUtopia uses custom Blockbench model
@@ -74,12 +71,12 @@ public class GestaltresonanceClient implements ClientModInitializer {
         );
     }
 
-    // ===== Generic renderer for base stands (Biped model) =====
-    public static class StandRenderer<T extends GestaltBase> extends MobEntityRenderer<T, BipedEntityModel<T>> {
+    // ===== Generic renderer for base Gestalten (Biped model) =====
+    public static class GestaltRenderer<T extends GestaltBase> extends MobEntityRenderer<T, BipedEntityModel<T>> {
 
         private final Identifier texture;
 
-        public StandRenderer(EntityRendererFactory.Context ctx, String textureName) {
+        public GestaltRenderer(EntityRendererFactory.Context ctx, String textureName) {
             super(ctx, new BipedEntityModel<>(ctx.getPart(EntityModelLayers.PLAYER)), 0.5f);
             this.texture = Identifier.of(
                     Gestaltresonance.MOD_ID,

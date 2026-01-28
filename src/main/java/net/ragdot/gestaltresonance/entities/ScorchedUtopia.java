@@ -21,6 +21,16 @@ public class ScorchedUtopia extends GestaltBase {
                 .add(EntityAttributes.GENERIC_MAX_HEALTH, 30.0);
     }
 
+    private void setupAnimationStates() {
+        if (this.idleAnimationTimeout <= 0) {
+            this.idleAnimationTimeout = 40;
+            this.idleAnimationState.start(this.age);
+        } else {
+            --this.idleAnimationTimeout;
+        }
+    }
+
+
     @Override
     protected void updatePositionToOwner() {
         double playerX = owner.getX();

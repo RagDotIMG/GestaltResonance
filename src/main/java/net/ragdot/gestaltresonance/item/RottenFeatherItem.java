@@ -3,6 +3,7 @@ package net.ragdot.gestaltresonance.item;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.text.Text;
 import net.minecraft.util.Hand;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.TypedActionResult;
@@ -32,18 +33,18 @@ public class RottenFeatherItem extends Item {
                 // Already assigned to Scorched Utopia -> unassign
                 GestaltAssignments.clearGestalt(user);
                 // Optional: feedback (chat message or sound)
-                // user.sendMessage(Text.literal("Your bond with Scorched Utopia fades."), true);
+                user.sendMessage(Text.literal("Your bond with Scorched Utopia fades."), true);
             } else {
                 // Assigned to something else OR nothing -> assign Scorched Utopia
                 GestaltAssignments.assignGestalt(user, SCORCHED_UTOPIA_ID);
                 // Optional: feedback
-                // user.sendMessage(Text.literal("You attune to Scorched Utopia."), true);
+                 user.sendMessage(Text.literal("You attune to Scorched Utopia."), true);
 
                 // Optional: consume the feather only when first assigning
-                // if (!user.getAbilities().creativeMode &&
-                //     (current == null || !current.equals(SCORCHED_UTOPIA_ID))) {
-                //     stack.decrement(1);
-                // }
+                 if (!user.getAbilities().creativeMode &&
+                     (current == null || !current.equals(SCORCHED_UTOPIA_ID))) {
+                     stack.decrement(1);
+                 }
             }
         }
 

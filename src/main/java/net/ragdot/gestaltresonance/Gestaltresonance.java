@@ -26,13 +26,13 @@ public class Gestaltresonance implements ModInitializer {
     public static final String MOD_ID = "gestaltresonance";
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
-    public static final EntityType<GestaltBase> CUSTOM_STAND = Registry.register(
+    public static final EntityType<GestaltBase> GESTALT_BASE_ENTITY_TYPE = Registry.register(
             Registries.ENTITY_TYPE,
-            Identifier.of(MOD_ID, "stand"),
+            Identifier.of(MOD_ID, "gestalt"),
             EntityType.Builder
                     .<GestaltBase>create(GestaltBase::new, SpawnGroup.MISC)
                     .dimensions(0.5f, 1.6f)
-                    .build("stand")
+                    .build("gestalt")
     );
 
     public static final EntityType<ScorchedUtopia> SCORCHED_UTOPIA = Registry.register(
@@ -47,7 +47,7 @@ public class Gestaltresonance implements ModInitializer {
     @Override
     public void onInitialize() {
         ModItems.registerModItems();
-        FabricDefaultAttributeRegistry.register(CUSTOM_STAND, GestaltBase.createBaseStandAttributes());
+        FabricDefaultAttributeRegistry.register(GESTALT_BASE_ENTITY_TYPE, GestaltBase.createBaseStandAttributes());
         FabricDefaultAttributeRegistry.register(SCORCHED_UTOPIA, ScorchedUtopia.createAttributes());
 
         registerCommands();
@@ -87,7 +87,7 @@ public class Gestaltresonance implements ModInitializer {
     }
 
     public void summonStand(World world, BlockPos pos, PlayerEntity owner) {
-        GestaltBase stand = new GestaltBase(CUSTOM_STAND, world);
+        GestaltBase stand = new GestaltBase(GESTALT_BASE_ENTITY_TYPE, world);
         stand.setOwner(owner);
 
         stand.refreshPositionAndAngles(
