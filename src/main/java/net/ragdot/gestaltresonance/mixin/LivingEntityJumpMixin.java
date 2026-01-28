@@ -30,8 +30,8 @@ public abstract class LivingEntityJumpMixin {
 
         if (!hasGestalt) return;
 
-        double extraY = 0.47;
-        double horizontalBoost = 0.7;
+        double extraY = 0.38;
+        double horizontalBoost = 0.9;
 
         float yaw = player.getYaw();
         double yawRad = Math.toRadians(yaw);

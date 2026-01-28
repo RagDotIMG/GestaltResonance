@@ -1,5 +1,6 @@
 package net.ragdot.gestaltresonance.entities;
 
+import net.minecraft.entity.AnimationState;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.attribute.DefaultAttributeContainer;
@@ -11,7 +12,6 @@ import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
-import net.ragdot.gestaltresonance.Gestaltresonance;
 
 import java.util.UUID;
 
@@ -19,6 +19,9 @@ public class GestaltBase extends MobEntity {
 
     protected PlayerEntity owner;
     protected UUID ownerUuid;
+
+    public final AnimationState idleAnimationState = new AnimationState();
+    private int idleAnimationTimeout = 0;
 
 
     // Super jump detection
@@ -39,7 +42,8 @@ public class GestaltBase extends MobEntity {
     public static DefaultAttributeContainer.Builder createBaseStandAttributes() {
         return MobEntity.createMobAttributes()
                 .add(EntityAttributes.GENERIC_MAX_HEALTH, 20.0)
-                .add(EntityAttributes.GENERIC_MOVEMENT_SPEED, 0.0);
+                .add(EntityAttributes.GENERIC_MOVEMENT_SPEED, 0.0)
+                .add(EntityAttributes.GENERIC_FLYING_SPEED, 30);
     }
 
     // ===== Owner handling =====
@@ -55,6 +59,7 @@ public class GestaltBase extends MobEntity {
     public UUID getOwnerUuid() {
         return ownerUuid;
     }
+
 
     // ===== Per-gestalt tuning hooks =====
 
@@ -103,10 +108,11 @@ public class GestaltBase extends MobEntity {
     public void tick() {
         super.tick();
 
+        this.setupAnimationStates();
         this.setNoGravity(true);
         this.noClip = true;
+        this.velocityModified = true;
         this.setVelocity(Vec3d.ZERO);
-        this.velocityDirty = true;
 
         if (!this.getWorld().isClient) {
             // Re-link owner from UUID after reload
@@ -121,10 +127,10 @@ public class GestaltBase extends MobEntity {
 
             this.setHealth(owner.getHealth());
 
-
             updateOwnerFollowAndCombat();
         }
     }
+
 
     private void updateOwnerFollowAndCombat() {
         // 1) Update target based on owner’s state (attacker first, then what owner is attacking)
@@ -249,10 +255,10 @@ public class GestaltBase extends MobEntity {
     }
 
 
-    // ===== SuperJump =====
+    // ===== Gestalt Throw =====
     /**
      * When the owner has this Gestalt summoned and does a crouch + jump,
-     * give them a “super jump” by boosting their upward velocity.
+     * the Gestalt throws the owner into the air, giving them forward velocity.
      */
     protected void handleSuperJump() {
         if (owner == null) return;
@@ -270,7 +276,7 @@ public class GestaltBase extends MobEntity {
                 owner.velocityDirty = true;
 
                 // Optional: log once to confirm it fires
-                Gestaltresonance.LOGGER.info("Super jump applied: extraY=" + extraY);
+                //Gestaltresonance.LOGGER.info("Super jump applied: extraY=" + extraY);
             }
         }
 
@@ -303,6 +309,16 @@ public class GestaltBase extends MobEntity {
         double targetY = playerY + heightOffset;
 
         this.refreshPositionAndAngles(targetX, targetY, targetZ, yaw, this.getPitch());
+    }
+
+    // ===== idle behavior =====
+    private void setupAnimationStates() {
+        if (this.idleAnimationTimeout <= 0) {
+            this.idleAnimationTimeout = 60;
+            this.idleAnimationState.start(this.age);
+        } else {
+            --this.idleAnimationTimeout;
+        }
     }
 
     // ===== Damage redirect to owner =====

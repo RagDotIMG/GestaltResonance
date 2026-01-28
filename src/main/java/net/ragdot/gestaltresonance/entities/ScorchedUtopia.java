@@ -1,6 +1,6 @@
 package net.ragdot.gestaltresonance.entities;
 
-import net.minecraft.entity.AnimationState;
+
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.attribute.DefaultAttributeContainer;
 import net.minecraft.entity.attribute.EntityAttributes;
@@ -8,8 +8,6 @@ import net.minecraft.world.World;
 
 public class ScorchedUtopia extends GestaltBase {
 
-    public final AnimationState idleAnimationState = new AnimationState();
-    private int idleAnimationTimeout = 0;
 
     public ScorchedUtopia(EntityType<? extends ScorchedUtopia> type, World world) {
         super(type, world);
@@ -19,15 +17,6 @@ public class ScorchedUtopia extends GestaltBase {
     public static DefaultAttributeContainer.Builder createAttributes() {
         return GestaltBase.createBaseStandAttributes()
                 .add(EntityAttributes.GENERIC_MAX_HEALTH, 30.0);
-    }
-
-    private void setupAnimationStates() {
-        if (this.idleAnimationTimeout <= 0) {
-            this.idleAnimationTimeout = 40;
-            this.idleAnimationState.start(this.age);
-        } else {
-            --this.idleAnimationTimeout;
-        }
     }
 
 
