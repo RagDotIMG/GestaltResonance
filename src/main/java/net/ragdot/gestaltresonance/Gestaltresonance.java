@@ -14,8 +14,10 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
+import net.ragdot.gestaltresonance.effect.ModStatusEffects;
 import net.ragdot.gestaltresonance.entities.GestaltBase;
 import net.ragdot.gestaltresonance.entities.ScorchedUtopia;
+import net.ragdot.gestaltresonance.item.ModItemGroups;
 import net.ragdot.gestaltresonance.item.ModItems;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,6 +48,8 @@ public class Gestaltresonance implements ModInitializer {
 
     @Override
     public void onInitialize() {
+        ModStatusEffects.registerStatusEffects();
+        ModItemGroups.registerItemGroups();
         ModItems.registerModItems();
         FabricDefaultAttributeRegistry.register(GESTALT_BASE_ENTITY_TYPE, GestaltBase.createBaseStandAttributes());
         FabricDefaultAttributeRegistry.register(SCORCHED_UTOPIA, ScorchedUtopia.createAttributes());
@@ -62,13 +66,12 @@ public class Gestaltresonance implements ModInitializer {
                             .executes(context -> {
                                 var source = context.getSource();
                                 var player = source.getPlayer(); // server-side
-                                var world = source.getWorld();
-
-                                summonStand(world, player.getBlockPos(), player);
+                                if (player != null) {
+                                    summonStand(source.getWorld(), player.getBlockPos(), player);
+                                }
                                 return Command.SINGLE_SUCCESS;
                             })
             );
-
 
             dispatcher.register(
                     CommandManager.literal("dismissStand")
@@ -76,13 +79,12 @@ public class Gestaltresonance implements ModInitializer {
                             .executes(context -> {
                                 var source = context.getSource();
                                 var player = source.getPlayer();
-                                var world = source.getWorld();
-
-                                dismissStand(world, player);
+                                if (player != null) {
+                                    dismissStand(source.getWorld(), player);
+                                }
                                 return Command.SINGLE_SUCCESS;
                             })
             );
-
         });
     }
 

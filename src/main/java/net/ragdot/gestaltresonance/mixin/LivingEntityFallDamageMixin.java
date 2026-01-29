@@ -3,7 +3,7 @@ package net.ragdot.gestaltresonance.mixin;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.player.PlayerEntity;
-import net.ragdot.gestaltresonance.util.IGestaltJumpPlayer;
+import net.ragdot.gestaltresonance.util.IGestaltPlayer;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -17,7 +17,7 @@ public abstract class LivingEntityFallDamageMixin {
             at = @At("HEAD"),
             cancellable = true
     )
-    private void gestaltresonance$cancelGestaltFallDamage(
+    private void gestaltresonance$cancelGestaltThrowFallDamage(
             float fallDistance, float damageMultiplier,
             DamageSource damageSource,
             CallbackInfoReturnable<Boolean> cir
@@ -26,11 +26,11 @@ public abstract class LivingEntityFallDamageMixin {
 
         if (!(self instanceof PlayerEntity player)) return;
 
-        IGestaltJumpPlayer jumpData = (IGestaltJumpPlayer) player;
-        if (!jumpData.gestaltresonance$isGestaltJumpActive()) return;
+        IGestaltPlayer throwData = (IGestaltPlayer) player;
+        if (!throwData.gestaltresonance$isGestaltThrowActive()) return;
 
         // Cancel damage once
-        jumpData.gestaltresonance$setGestaltJumpActive(false);
+        throwData.gestaltresonance$setGestaltThrowActive(false);
 
         // Cancel the fall damage: return false and stop vanilla logic
         cir.setReturnValue(false);

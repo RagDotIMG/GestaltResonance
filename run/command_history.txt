@@ -1,13 +1,5 @@
 /gamemode creative
 /gamemode survival
-/summonStand
-/despawnStand
-/summonStand
-/dismissStand
-/summonStand
-/gamemode survival
-/gamemode creative
-/gamemode survival
 /gamemode creative
 /summonStand
 /gamemode creative
@@ -48,3 +40,11 @@
 /gamemode creative
 /gamemode survival
 /time set day
+/gamemode creative
+/gamemode survival
+/time set night
+/gamemode creative
+/gamemode
+/gamemode survival
+/gamemode creative
+/gamemode survival

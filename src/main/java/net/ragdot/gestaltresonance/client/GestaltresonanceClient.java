@@ -7,8 +7,12 @@ import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityModelLayerRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
 import net.ragdot.gestaltresonance.network.ToggleGestaltSummonPayload;
+import net.ragdot.gestaltresonance.network.ToggleGuardModePayload;
+import net.ragdot.gestaltresonance.network.ToggleLedgeGrabPayload;
+import net.ragdot.gestaltresonance.util.IGestaltPlayer;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.KeyBinding;
+import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.entity.EntityRendererFactory;
 import net.minecraft.client.render.entity.MobEntityRenderer;
@@ -28,6 +32,8 @@ public class GestaltresonanceClient implements ClientModInitializer {
 
     // Client-side key binding: “summon / dismiss Gestalt”
     private static KeyBinding summonGestaltKey;
+    private static boolean wasSpacePressedLastTick = false;
+    private static boolean wasOnGroundLastTick = true;
 
     @Override
     public void onInitializeClient() {
@@ -43,10 +49,107 @@ public class GestaltresonanceClient implements ClientModInitializer {
 
         // Each client tick, check if the key was pressed and send a packet to the server
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
+            if (client.player != null) {
+                IGestaltPlayer gestaltPlayer = (IGestaltPlayer) client.player;
+                int cooldown = gestaltPlayer.gestaltresonance$getLedgeGrabCooldown();
+                if (cooldown > 0) {
+                    gestaltPlayer.gestaltresonance$setLedgeGrabCooldown(cooldown - 1);
+                }
+            }
+
             while (summonGestaltKey.wasPressed()) {
                 if (client.player != null && client.world != null) {
                     ClientPlayNetworking.send(new ToggleGestaltSummonPayload());
                 }
+            }
+
+            // Detect right-click + crouch (hold-to-guard)
+            if (client.player != null && client.options != null) {
+                IGestaltPlayer gestaltPlayer = (IGestaltPlayer) client.player;
+                boolean isRightClickPressed = client.options.useKey.isPressed();
+                boolean isSneaking = client.player.isSneaking();
+                
+                boolean isCurrentlyGuarding = gestaltPlayer.gestaltresonance$isGuarding();
+                boolean shouldBeGuarding;
+                
+                if (isCurrentlyGuarding) {
+                    // If we are already guarding, stay in guard mode as long as right click is held
+                    shouldBeGuarding = isRightClickPressed;
+                } else {
+                    // To start guarding, we need both right click and sneak
+                    shouldBeGuarding = isRightClickPressed && isSneaking;
+                }
+
+                if (shouldBeGuarding != isCurrentlyGuarding) {
+                    gestaltPlayer.gestaltresonance$setGuarding(shouldBeGuarding);
+                    ClientPlayNetworking.send(new ToggleGuardModePayload(shouldBeGuarding));
+                }
+
+                // Ledge grab logic
+                boolean isSpacePressed = client.options.jumpKey.isPressed();
+                boolean wasOnGround = client.player.isOnGround();
+                
+                boolean isLedgeGrabbing = gestaltPlayer.gestaltresonance$isLedgeGrabbing();
+                boolean isInAir = !wasOnGround && !client.player.getAbilities().flying;
+                boolean isCooldownActive = gestaltPlayer.gestaltresonance$getLedgeGrabCooldown() > 0;
+                
+                // Ledge grab should only activate if spacebar is triggered mid-air (was not on ground last tick either)
+                if (isSpacePressed && !wasSpacePressedLastTick && isInAir && !wasOnGroundLastTick && !isLedgeGrabbing && !isCooldownActive) {
+                    // Only allow if Gestalt is active
+                    boolean hasActiveGestalt = !client.world.getEntitiesByClass(
+                            GestaltBase.class,
+                            client.player.getBoundingBox().expand(256.0),
+                            stand -> {
+                                var uuid = stand.getOwnerUuid();
+                                return uuid != null && uuid.equals(client.player.getUuid());
+                            }
+                    ).isEmpty();
+
+                    if (hasActiveGestalt) {
+                        // Try to find a ledge
+                        net.minecraft.util.hit.HitResult hit = client.player.raycast(2.5, 0.0f, false);
+                        if (hit.getType() == net.minecraft.util.hit.HitResult.Type.BLOCK) {
+                            net.minecraft.util.hit.BlockHitResult blockHit = (net.minecraft.util.hit.BlockHitResult) hit;
+                            net.minecraft.util.math.BlockPos pos = blockHit.getBlockPos();
+                            net.minecraft.util.math.Direction side = blockHit.getSide();
+                            
+                            if (client.world.getBlockState(pos.up()).isAir() && side.getAxis().isHorizontal()) {
+                                // Valid ledge!
+                                gestaltPlayer.gestaltresonance$setLedgeGrabbing(true);
+                                gestaltPlayer.gestaltresonance$setLedgeGrabPos(pos);
+
+                                // Calculate the fixed Gestalt position locally for immediate client-side feedback
+                                net.minecraft.util.math.Vec3d targetBlockCenter = new net.minecraft.util.math.Vec3d(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5);
+                                // Predict pull target (1.5 blocks from the side)
+                                net.minecraft.util.math.Vec3d sideVec = net.minecraft.util.math.Vec3d.of(side.getVector());
+                                net.minecraft.util.math.Vec3d predictedPullTarget = new net.minecraft.util.math.Vec3d(
+                                    targetBlockCenter.x + sideVec.x * 1.5,
+                                    pos.getY() - 0.6,
+                                    targetBlockCenter.z + sideVec.z * 1.5
+                                );
+                                net.minecraft.util.math.Vec3d dirToLedge = targetBlockCenter.subtract(predictedPullTarget).withAxis(net.minecraft.util.math.Direction.Axis.Y, 0).normalize();
+                                net.minecraft.util.math.Vec3d gestaltPos = new net.minecraft.util.math.Vec3d(
+                                    predictedPullTarget.x + dirToLedge.x * 0.3,
+                                    predictedPullTarget.y + client.player.getEyeHeight(client.player.getPose()) - 1.1,
+                                    predictedPullTarget.z + dirToLedge.z * 0.3
+                                );
+                                gestaltPlayer.gestaltresonance$setLedgeGrabGestaltPos(gestaltPos);
+                                gestaltPlayer.gestaltresonance$setLedgeGrabGestaltYaw(client.player.getYaw());
+
+                                ClientPlayNetworking.send(new ToggleLedgeGrabPayload(true, java.util.Optional.of(pos), java.util.Optional.of(side)));
+                            }
+                        }
+                    }
+                } else if (isLedgeGrabbing && !isSpacePressed) {
+                    // Release ledge grab
+                    gestaltPlayer.gestaltresonance$setLedgeGrabbing(false);
+                    gestaltPlayer.gestaltresonance$setLedgeGrabGestaltPos(null);
+                    gestaltPlayer.gestaltresonance$setLedgeGrabCooldown(20);
+                    ClientPlayNetworking.send(new ToggleLedgeGrabPayload(false, java.util.Optional.empty(), java.util.Optional.empty()));
+                }
+                
+                wasSpacePressedLastTick = isSpacePressed;
+                wasOnGroundLastTick = wasOnGround;
             }
         });
 
@@ -87,21 +190,34 @@ public class GestaltresonanceClient implements ClientModInitializer {
         @Override
         public void render(T entity, float yaw, float tickDelta,
                            MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light) {
-
-            // Hide stand if it would clip into the local player’s camera
-            if (shouldHideForLocalPlayer(entity)) {
-                return;
-            }
-
             super.render(entity, yaw, tickDelta, matrices, vertexConsumers, light);
         }
 
-        private boolean shouldHideForLocalPlayer(T stand) {
+        @Override
+        protected int getBlockLight(T entity, net.minecraft.util.math.BlockPos pos) {
+            return super.getBlockLight(entity, pos);
+        }
+
+        @Override
+        protected void setupTransforms(T entity, MatrixStack matrices, float animationProgress, float bodyYaw, float tickDelta, float scale) {
+            super.setupTransforms(entity, matrices, animationProgress, bodyYaw, tickDelta, scale);
+        }
+
+        @Override
+        protected RenderLayer getRenderLayer(T entity, boolean showBody, boolean translucent, boolean showOutline) {
+            if (isBlockingFirstPersonView(entity)) {
+                return RenderLayer.getEntityTranslucent(this.getTexture(entity));
+            }
+            return super.getRenderLayer(entity, showBody, translucent, showOutline);
+        }
+
+        public static <T extends GestaltBase> boolean isBlockingFirstPersonView(T stand) {
             PlayerEntity owner = stand.getOwner();
             if (owner == null) return false;
 
             MinecraftClient client = MinecraftClient.getInstance();
             if (client.player != owner) return false;
+            if (!client.options.getPerspective().isFirstPerson()) return false;
 
             double dx = stand.getX() - owner.getX();
             double dy = stand.getEyeY() - owner.getEyeY();
@@ -136,21 +252,15 @@ public class GestaltresonanceClient implements ClientModInitializer {
         @Override
         public void render(ScorchedUtopia entity, float yaw, float tickDelta,
                            MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light) {
-
-            // Reuse the “hide when too close to owner” behavior
-            PlayerEntity owner = entity.getOwner();
-            if (owner != null) {
-                MinecraftClient client = MinecraftClient.getInstance();
-                if (client.player == owner) {
-                    double dx = entity.getX() - owner.getX();
-                    double dy = entity.getEyeY() - owner.getEyeY();
-                    double dz = entity.getZ() - owner.getZ();
-                    double distSq = dx * dx + dy * dy + dz * dz;
-                    if (distSq < 1.0) return;
-                }
-            }
-
             super.render(entity, yaw, tickDelta, matrices, vertexConsumers, light);
+        }
+
+        @Override
+        protected RenderLayer getRenderLayer(ScorchedUtopia entity, boolean showBody, boolean translucent, boolean showOutline) {
+            if (GestaltRenderer.isBlockingFirstPersonView(entity)) {
+                return RenderLayer.getEntityTranslucent(TEXTURE);
+            }
+            return super.getRenderLayer(entity, showBody, translucent, showOutline);
         }
 
         @Override

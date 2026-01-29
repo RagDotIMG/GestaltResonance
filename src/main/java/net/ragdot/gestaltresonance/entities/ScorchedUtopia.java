@@ -2,9 +2,14 @@ package net.ragdot.gestaltresonance.entities;
 
 
 import net.minecraft.entity.EntityType;
+import net.minecraft.entity.effect.StatusEffectInstance;
+import net.minecraft.entity.mob.HostileEntity;
 import net.minecraft.entity.attribute.DefaultAttributeContainer;
 import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.world.World;
+import net.ragdot.gestaltresonance.effect.ModStatusEffects;
+
+import java.util.List;
 
 public class ScorchedUtopia extends GestaltBase {
 
@@ -13,47 +18,47 @@ public class ScorchedUtopia extends GestaltBase {
         super(type, world);
     }
 
+    @Override
+    public void tick() {
+        super.tick();
+
+        if (!this.getWorld().isClient && this.age % 20 == 0) {
+            applyRottingAura();
+        }
+    }
+
+    private void applyRottingAura() {
+        double range = 5.0;
+        List<HostileEntity> hostiles = this.getWorld().getEntitiesByClass(
+                HostileEntity.class,
+                this.getBoundingBox().expand(range),
+                entity -> entity.isAlive() && this.squaredDistanceTo(entity) <= range * range
+        );
+
+        for (HostileEntity hostile : hostiles) {
+            hostile.addStatusEffect(new StatusEffectInstance(ModStatusEffects.ROTTING, 100, 0));
+        }
+    }
+
     // Attributes specific to this stand (can override base)
     public static DefaultAttributeContainer.Builder createAttributes() {
-        return GestaltBase.createBaseStandAttributes()
-                .add(EntityAttributes.GENERIC_MAX_HEALTH, 30.0);
+        return GestaltBase.createBaseStandAttributes();
     }
 
 
     @Override
-    protected void updatePositionToOwner() {
-        double playerX = owner.getX();
-        double playerY = owner.getY();
-        double playerZ = owner.getZ();
-
-        float yaw = owner.getYaw();
-        double backOffset = -0.9;
-        double sideOffset = 0.8;
-        double heightOffset = 0.3;
-
-        double rad = Math.toRadians(yaw);
-
-        double backX = -Math.sin(rad);
-        double backZ =  Math.cos(rad);
-        double rightX =  Math.cos(rad);
-        double rightZ =  Math.sin(rad);
-
-        double targetX = playerX + backOffset * backX + sideOffset * rightX;
-        double targetZ = playerZ + backOffset * backZ + sideOffset * rightZ;
-        double targetY = playerY + heightOffset;
-
-        this.refreshPositionAndAngles(targetX, targetY, targetZ, yaw, this.getPitch());
+    protected boolean canMeleeAttack() {
+        return true;
     }
 
-    // === Combat tuning for Scorched Utopia ===
     @Override
     protected double getMaxChaseRange() {
-        return 5.0; // can chase a bit further
+        return 6.0; // can chase a bit further
     }
 
     @Override
     protected double getAttackReach() {
-        return 5.0; // slightly longer punch
+        return 2.0; // slightly shorter punch
     }
 
     @Override
@@ -63,6 +68,11 @@ public class ScorchedUtopia extends GestaltBase {
 
     @Override
     protected int getAttackCooldownTicks() {
-        return 10; // faster punches than default
+        return 40; // 2s
+    }
+
+    @Override
+    protected float getDamageReductionFactor() {
+        return 0.15f; // Scorched Utopia has higher defense (85% reduction vs 70%)
     }
 }
