@@ -430,7 +430,7 @@ public class GestaltBase extends MobEntity {
         applySmoothPosition(targetX, targetY, targetZ, yaw, true);
     }
 
-    private void applySmoothPosition(double tx, double ty, double tz, float yaw, boolean smooth) {
+    protected void applySmoothPosition(double tx, double ty, double tz, float yaw, boolean smooth) {
         Vec3d targetPos = new Vec3d(tx, ty, tz);
         
         if (smooth) {
