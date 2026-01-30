@@ -7,10 +7,11 @@ import net.minecraft.util.Identifier;
 import net.ragdot.gestaltresonance.Gestaltresonance;
 
 public class ModItems {
-    public static final Item POKEY_FEATHER = registerItem("pokey_feather", new Item(new Item.Settings()));
+    public static final Item POKEY_FEATHER = registerItem("pokey_feather", new PokeyFeatherItem(new Item.Settings()));
     public static final Item ROTTEN_FEATHER = registerItem("rotten_feather", new RottenFeatherItem(new Item.Settings()));
     public static final Item BLASTED_FEATHER = registerItem("blasted_feather", new BlastedFeatherItem(new Item.Settings()));
     public static final Item ROTTEN_ESSENCE = registerItem("rotten_essence", new Item(new Item.Settings()));
+    public static final Item NEATHER_TEAR = registerItem("neather_tear", new NetherTearItem(new Item.Settings()));
 
     private static Item registerItem(String name, Item item) {
         return Registry.register(Registries.ITEM, Identifier.of(Gestaltresonance.MOD_ID, name), item);
