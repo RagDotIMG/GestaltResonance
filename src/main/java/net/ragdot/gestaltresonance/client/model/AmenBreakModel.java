@@ -130,10 +130,10 @@ public class AmenBreakModel extends SinglePartEntityModel<AmenBreak> {
 						  float netHeadYaw,
 						  float headPitch) {
 		this.getPart().traverse().forEach(ModelPart::resetTransform);
-		this.updateAnimation(entity.idleAnimationState,
-				AmenBreakAnimation.Idel,
-				ageInTicks,
-				1.0f);
+		this.updateAnimation(entity.idleAnimationState, AmenBreakAnimation.Idel, ageInTicks, 1.0f);
+		this.updateAnimation(entity.guardAnimationState, AmenBreakAnimation.Gaurd, ageInTicks, 1.0f);
+		this.updateAnimation(entity.throwAnimationState, AmenBreakAnimation.Throw, ageInTicks, 1.2f);
+		this.updateAnimation(entity.grabAnimationState, AmenBreakAnimation.grab, ageInTicks, 1.0f);
 	}
 
 	@Override

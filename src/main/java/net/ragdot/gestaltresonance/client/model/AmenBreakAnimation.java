@@ -101,4 +101,10 @@ public class AmenBreakAnimation {
 			new Keyframe(0.0F, AnimationHelper.createTranslationalVector(0.0F, -1.4F, -1.8F), Transformation.Interpolations.LINEAR)
 		))
 		.build();
+
+	public static final Animation Gaurd = Animation.Builder.create(0.1F).looping()
+		.build();
+
+	public static final Animation grab = Animation.Builder.create(0.1F).looping()
+		.build();
 }

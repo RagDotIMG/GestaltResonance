@@ -16,6 +16,8 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 
+import net.minecraft.util.Identifier;
+import net.ragdot.gestaltresonance.GestaltAssignments;
 import net.ragdot.gestaltresonance.util.IGestaltPlayer;
 import java.util.List;
 import java.util.Optional;
@@ -26,11 +28,15 @@ public class GestaltBase extends MobEntity {
     protected static final TrackedData<Optional<UUID>> OWNER_UUID = DataTracker.registerData(GestaltBase.class, TrackedDataHandlerRegistry.OPTIONAL_UUID);
     protected static final TrackedData<Integer> TARGET_ID = DataTracker.registerData(GestaltBase.class, TrackedDataHandlerRegistry.INTEGER);
     protected static final TrackedData<Boolean> IS_ATTACKING = DataTracker.registerData(GestaltBase.class, TrackedDataHandlerRegistry.BOOLEAN);
+    protected static final TrackedData<Boolean> IS_THROWING = DataTracker.registerData(GestaltBase.class, TrackedDataHandlerRegistry.BOOLEAN);
 
     protected PlayerEntity owner;
     protected UUID ownerUuid;
 
     public final AnimationState idleAnimationState = new AnimationState();
+    public final AnimationState guardAnimationState = new AnimationState();
+    public final AnimationState throwAnimationState = new AnimationState();
+    public final AnimationState grabAnimationState = new AnimationState();
     private int idleAnimationTimeout = 0;
 
 
@@ -43,7 +49,7 @@ public class GestaltBase extends MobEntity {
     protected int attackCooldownTicks = 0; // simple per-stand cooldown
     
     // Smooth movement state
-    private static final double SMOOTH_FACTOR = 0.3; // How much to move towards target each tick (0.0 to 1.0)
+    private static final double SMOOTH_FACTOR = 0.2; // How much to move towards target each tick (0.0 to 1.0)
 
     public GestaltBase(EntityType<? extends MobEntity> type, World world) {
         super(type, world);
@@ -57,6 +63,7 @@ public class GestaltBase extends MobEntity {
         builder.add(OWNER_UUID, Optional.empty());
         builder.add(TARGET_ID, -1);
         builder.add(IS_ATTACKING, false);
+        builder.add(IS_THROWING, false);
     }
 
     // ===== Shared attributes =====
@@ -184,6 +191,14 @@ public class GestaltBase extends MobEntity {
                 return;
             }
 
+            // Ensure the owner is still assigned to this type of Gestalt
+            Identifier assigned = GestaltAssignments.getAssignedGestalt(owner);
+            Identifier thisId = net.minecraft.registry.Registries.ENTITY_TYPE.getId(this.getType());
+            if (assigned == null || !assigned.equals(thisId)) {
+                this.discard();
+                return;
+            }
+
             IGestaltPlayer gestaltPlayer = (IGestaltPlayer) owner;
 
             if (gestaltPlayer.gestaltresonance$isLedgeGrabbing()) {
@@ -213,7 +228,22 @@ public class GestaltBase extends MobEntity {
             if (this.dataTracker.get(IS_ATTACKING) != isAttacking) {
                 this.dataTracker.set(IS_ATTACKING, isAttacking);
             }
+
+            // Sync throw state to client
+            boolean isThrowing = gestaltPlayer.gestaltresonance$isGestaltThrowActive();
+            if (this.dataTracker.get(IS_THROWING) != isThrowing) {
+                this.dataTracker.set(IS_THROWING, isThrowing);
+            }
         } else {
+            // Client-side: update IS_THROWING from local owner state for zero-latency animation
+            if (owner != null && owner.isAlive()) {
+                IGestaltPlayer gestaltPlayer = (IGestaltPlayer) owner;
+                boolean isThrowing = gestaltPlayer.gestaltresonance$isGestaltThrowActive();
+                if (this.dataTracker.get(IS_THROWING) != isThrowing) {
+                    this.dataTracker.set(IS_THROWING, isThrowing);
+                }
+            }
+
             // Client-side: sync target and attack state from data tracker
             int targetId = this.dataTracker.get(TARGET_ID);
             boolean isAttacking = this.dataTracker.get(IS_ATTACKING);
@@ -551,12 +581,46 @@ public class GestaltBase extends MobEntity {
     }
 
     // ===== idle behavior =====
-    private void setupAnimationStates() {
-        if (this.idleAnimationTimeout <= 0) {
-            this.idleAnimationTimeout = 60;
-            this.idleAnimationState.start(this.age);
-        } else {
-            --this.idleAnimationTimeout;
+    protected void setupAnimationStates() {
+        if (this.getWorld().isClient) {
+            PlayerEntity owner = getOwner();
+            boolean anyOtherAnimationRunning = false;
+
+            if (owner != null) {
+                IGestaltPlayer gp = (IGestaltPlayer) owner;
+                
+                // Guard animation
+                if (gp.gestaltresonance$isGuarding()) {
+                    this.guardAnimationState.startIfNotRunning(this.age);
+                    anyOtherAnimationRunning = true;
+                } else {
+                    this.guardAnimationState.stop();
+                }
+
+                // Grab animation
+                if (gp.gestaltresonance$isLedgeGrabbing()) {
+                    this.grabAnimationState.startIfNotRunning(this.age);
+                    anyOtherAnimationRunning = true;
+                } else {
+                    this.grabAnimationState.stop();
+                }
+            }
+
+            // Throw animation
+            if (this.dataTracker.get(IS_THROWING)) {
+                this.throwAnimationState.startIfNotRunning(this.age);
+                anyOtherAnimationRunning = true;
+            } else {
+                this.throwAnimationState.stop();
+            }
+
+            // Idle animation handling
+            if (anyOtherAnimationRunning) {
+                this.idleAnimationState.stop();
+                this.idleAnimationTimeout = 0;
+            } else {
+                this.idleAnimationState.startIfNotRunning(this.age);
+            }
         }
     }
 

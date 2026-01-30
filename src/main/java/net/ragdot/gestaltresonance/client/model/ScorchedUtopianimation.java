@@ -111,4 +111,13 @@ public class ScorchedUtopianimation {
 			new Keyframe(3.0F, AnimationHelper.createRotationalVector(0.0F, 0.0F, 0.0F), Transformation.Interpolations.CUBIC)
 		))
 		.build();
+
+	public static final Animation Gaurd = Animation.Builder.create(0.1F).looping()
+		.build();
+
+	public static final Animation Throw = Animation.Builder.create(0.1F)
+		.build();
+
+	public static final Animation grab = Animation.Builder.create(0.1F).looping()
+		.build();
 }

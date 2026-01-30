@@ -11,7 +11,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.util.math.Vec3d;
-
+import net.ragdot.gestaltresonance.network.GestaltThrowPayload;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import net.minecraft.sound.SoundEvent;
 
@@ -65,13 +66,23 @@ public abstract class PlayerEntityMixin {
     private void gestaltresonance$onGestaltThrow(CallbackInfo ci) {
         PlayerEntity player = (PlayerEntity) (Object) this;
 
-        if (!(player.getWorld() instanceof ServerWorld serverWorld) || !player.isSneaking()) return;
+        if (!player.isSneaking()) return;
 
-        boolean hasGestalt = !serverWorld.getEntitiesByClass(
-                GestaltBase.class,
-                player.getBoundingBox().expand(4.0),
-                stand -> player.getUuid().equals(stand.getOwnerUuid())
-        ).isEmpty();
+        boolean hasGestalt;
+        if (player.getWorld() instanceof ServerWorld serverWorld) {
+            hasGestalt = !serverWorld.getEntitiesByClass(
+                    GestaltBase.class,
+                    player.getBoundingBox().expand(4.0),
+                    stand -> player.getUuid().equals(stand.getOwnerUuid())
+            ).isEmpty();
+        } else {
+            // Client-side check
+            hasGestalt = !player.getWorld().getEntitiesByClass(
+                    GestaltBase.class,
+                    player.getBoundingBox().expand(4.0),
+                    stand -> player.getUuid().equals(stand.getOwnerUuid())
+            ).isEmpty();
+        }
 
         if (!hasGestalt) return;
 
@@ -88,6 +99,11 @@ public abstract class PlayerEntityMixin {
 
         // Mark this player as having an active GestaltThrow
         ((IGestaltPlayer) player).gestaltresonance$setGestaltThrowActive(true);
+        
+        // If on client, send packet to server
+        if (player.getWorld().isClient) {
+            ClientPlayNetworking.send(new GestaltThrowPayload(true));
+        }
 
         // Set 1 second cooldown for ledge grab after jumping
         ((IGestaltPlayer) player).gestaltresonance$setLedgeGrabCooldown(20);

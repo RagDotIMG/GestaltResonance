@@ -9,6 +9,7 @@ import net.minecraft.util.math.Vec3d;
 import net.ragdot.gestaltresonance.entities.AmenBreak;
 import net.ragdot.gestaltresonance.entities.GestaltBase;
 import net.ragdot.gestaltresonance.entities.ScorchedUtopia;
+import net.ragdot.gestaltresonance.network.GestaltThrowPayload;
 import net.ragdot.gestaltresonance.network.ToggleGestaltSummonPayload;
 import net.ragdot.gestaltresonance.network.ToggleGuardModePayload;
 import net.ragdot.gestaltresonance.network.ToggleLedgeGrabPayload;
@@ -32,6 +33,10 @@ public class GestaltNetworking {
                 ToggleLedgeGrabPayload.ID,
                 ToggleLedgeGrabPayload.CODEC
         );
+        PayloadTypeRegistry.playC2S().register(
+                GestaltThrowPayload.ID,
+                GestaltThrowPayload.CODEC
+        );
 
         // 2) Register server handlers
         ServerPlayNetworking.registerGlobalReceiver(ToggleGestaltSummonPayload.ID, (payload, context) -> {
@@ -45,6 +50,14 @@ public class GestaltNetworking {
         ServerPlayNetworking.registerGlobalReceiver(ToggleLedgeGrabPayload.ID, (payload, context) -> {
             context.server().execute(() -> handleToggleLedgeGrab(context.player(), payload.grabbing(), payload.pos(), payload.side()));
         });
+
+        ServerPlayNetworking.registerGlobalReceiver(GestaltThrowPayload.ID, (payload, context) -> {
+            context.server().execute(() -> handleGestaltThrow(context.player(), payload.active()));
+        });
+    }
+
+    private static void handleGestaltThrow(ServerPlayerEntity player, boolean active) {
+        ((IGestaltPlayer) player).gestaltresonance$setGestaltThrowActive(active);
     }
 
     private static void handleToggleLedgeGrab(ServerPlayerEntity player, boolean grabbing, java.util.Optional<net.minecraft.util.math.BlockPos> pos, java.util.Optional<net.minecraft.util.math.Direction> side) {
