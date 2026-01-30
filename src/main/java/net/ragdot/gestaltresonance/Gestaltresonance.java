@@ -15,6 +15,7 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.ragdot.gestaltresonance.effect.ModStatusEffects;
+import net.ragdot.gestaltresonance.entities.AmenBreak;
 import net.ragdot.gestaltresonance.entities.GestaltBase;
 import net.ragdot.gestaltresonance.entities.ScorchedUtopia;
 import net.ragdot.gestaltresonance.item.ModItemGroups;
@@ -46,6 +47,15 @@ public class Gestaltresonance implements ModInitializer {
                     .build("scorched_utopia")
     );
 
+    public static final EntityType<AmenBreak> AMEN_BREAK = Registry.register(
+            Registries.ENTITY_TYPE,
+            Identifier.of(MOD_ID, "amen_break"),
+            EntityType.Builder
+                    .<AmenBreak>create(AmenBreak::new, SpawnGroup.MISC)
+                    .dimensions(0.5f, 1.6f)
+                    .build("amen_break")
+    );
+
     @Override
     public void onInitialize() {
         ModStatusEffects.registerStatusEffects();
@@ -53,6 +63,7 @@ public class Gestaltresonance implements ModInitializer {
         ModItems.registerModItems();
         FabricDefaultAttributeRegistry.register(GESTALT_BASE_ENTITY_TYPE, GestaltBase.createBaseStandAttributes());
         FabricDefaultAttributeRegistry.register(SCORCHED_UTOPIA, ScorchedUtopia.createAttributes());
+        FabricDefaultAttributeRegistry.register(AMEN_BREAK, AmenBreak.createAttributes());
 
         registerCommands();
         GestaltNetworking.registerServerReceivers();

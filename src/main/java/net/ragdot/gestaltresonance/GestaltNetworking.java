@@ -6,6 +6,7 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Vec3d;
+import net.ragdot.gestaltresonance.entities.AmenBreak;
 import net.ragdot.gestaltresonance.entities.GestaltBase;
 import net.ragdot.gestaltresonance.entities.ScorchedUtopia;
 import net.ragdot.gestaltresonance.network.ToggleGestaltSummonPayload;
@@ -144,7 +145,52 @@ public class GestaltNetworking {
         var scorchedId = Identifier.of(Gestaltresonance.MOD_ID, "scorched_utopia");
         if (assigned.equals(scorchedId)) {
             toggleScorchedUtopia(player);
+            return;
         }
+
+        var amenBreakId = Identifier.of(Gestaltresonance.MOD_ID, "amen_break");
+        if (assigned.equals(amenBreakId)) {
+            toggleAmenBreak(player);
+        }
+    }
+
+    private static void toggleAmenBreak(ServerPlayerEntity player) {
+        ServerWorld world = player.getServerWorld();
+
+        List<AmenBreak> stands = world.getEntitiesByClass(
+                AmenBreak.class,
+                player.getBoundingBox().expand(256.0),
+                stand -> {
+                    var uuid = stand.getOwnerUuid();
+                    return uuid != null && uuid.equals(player.getUuid());
+                }
+        );
+
+        if (!stands.isEmpty()) {
+            stands.forEach(GestaltBase::discard);
+            return;
+        }
+
+        float yaw = player.getYaw();
+        double rad = Math.toRadians(yaw);
+
+        double backOffset = 1.9;
+        double sideOffset = 0.5;
+        double heightOffset = 0.4;
+
+        double backX = -Math.sin(rad);
+        double backZ =  Math.cos(rad);
+        double rightX =  Math.cos(rad);
+        double rightZ =  Math.sin(rad);
+
+        double spawnX = player.getX() + backOffset * backX + sideOffset * rightX;
+        double spawnZ = player.getZ() + backOffset * backZ + sideOffset * rightZ;
+        double spawnY = player.getY() + heightOffset;
+
+        AmenBreak stand = new AmenBreak(Gestaltresonance.AMEN_BREAK, world);
+        stand.setOwner(player);
+        stand.refreshPositionAndAngles(spawnX, spawnY, spawnZ, yaw, 0.0f);
+        world.spawnEntity(stand);
     }
 
     private static void toggleScorchedUtopia(ServerPlayerEntity player) {

@@ -10,9 +10,7 @@ import net.minecraft.util.Identifier;
 import net.ragdot.gestaltresonance.Gestaltresonance;
 import net.ragdot.gestaltresonance.entities.ScorchedUtopia;
 
-// Made with Blockbench 5.0.7
-// Exported for Minecraft version 1.17+ for Yarn
-// Paste this class into your mod and generate all required imports
+
 public class ScorchedUtopiaModel extends SinglePartEntityModel<ScorchedUtopia> {
 
 	public static final EntityModelLayer SCORCHED_UTOPIA = new EntityModelLayer(Identifier.of(Gestaltresonance.MOD_ID, "scorched_utopia"), "main");

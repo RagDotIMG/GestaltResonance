@@ -5,12 +5,9 @@ import net.minecraft.client.render.entity.animation.AnimationHelper;
 import net.minecraft.client.render.entity.animation.Keyframe;
 import net.minecraft.client.render.entity.animation.Transformation;
 
-/**
- * Made with Blockbench 5.0.7
- * Exported for Minecraft version 1.19 or later with Yarn mappings
- * made by emma
- */
+
 public class ScorchedUtopianimation {
+
 	public static final Animation idle = Animation.Builder.create(3.0F).looping()
 		.addBoneAnimation("zombie_model", new Transformation(Transformation.Targets.TRANSLATE,
 			new Keyframe(0.0F, AnimationHelper.createTranslationalVector(0.0F, 0.0F, 0.0F), Transformation.Interpolations.CUBIC),

@@ -93,6 +93,3 @@ public abstract class PlayerEntityMixin {
         ((IGestaltPlayer) player).gestaltresonance$setLedgeGrabCooldown(20);
     }
 }
-
-
-

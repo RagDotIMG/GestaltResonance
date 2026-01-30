@@ -6,6 +6,7 @@ import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityModelLayerRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
+import net.ragdot.gestaltresonance.client.model.AmenBreakModel;
 import net.ragdot.gestaltresonance.network.ToggleGestaltSummonPayload;
 import net.ragdot.gestaltresonance.network.ToggleGuardModePayload;
 import net.ragdot.gestaltresonance.network.ToggleLedgeGrabPayload;
@@ -26,6 +27,7 @@ import org.lwjgl.glfw.GLFW;
 import net.ragdot.gestaltresonance.Gestaltresonance;
 import net.ragdot.gestaltresonance.client.model.ScorchedUtopiaModel;
 import net.ragdot.gestaltresonance.entities.GestaltBase;
+import net.ragdot.gestaltresonance.entities.AmenBreak;
 import net.ragdot.gestaltresonance.entities.ScorchedUtopia;
 
 public class GestaltresonanceClient implements ClientModInitializer {
@@ -172,6 +174,17 @@ public class GestaltresonanceClient implements ClientModInitializer {
                 Gestaltresonance.SCORCHED_UTOPIA,
                 ScorchedUtopiaRenderer::new
         );
+
+        // 4) AmenBreak uses custom Blockbench model
+        EntityModelLayerRegistry.registerModelLayer(
+                ModModelLayers.AMEN_BREAK,
+                AmenBreakModel::getTexturedModelData
+        );
+
+        EntityRendererRegistry.register(
+                Gestaltresonance.AMEN_BREAK,
+                AmenBreakRenderer::new
+        );
     }
 
     // ===== Generic renderer for base Gestalten (Biped model) =====
@@ -265,6 +278,42 @@ public class GestaltresonanceClient implements ClientModInitializer {
 
         @Override
         public Identifier getTexture(ScorchedUtopia entity) {
+            return TEXTURE;
+        }
+    }
+
+    // ===== Renderer that uses Blockbench model for AmenBreak =====
+    public static class AmenBreakRenderer
+            extends MobEntityRenderer<AmenBreak, AmenBreakModel> {
+
+        private static final Identifier TEXTURE = Identifier.of(
+                Gestaltresonance.MOD_ID,
+                "textures/entity/amen_break.png"
+        );
+
+        public AmenBreakRenderer(EntityRendererFactory.Context ctx) {
+            super(ctx,
+                    new AmenBreakModel(ctx.getPart(ModModelLayers.AMEN_BREAK)),
+                    0.5f
+            );
+        }
+
+        @Override
+        public void render(AmenBreak entity, float yaw, float tickDelta,
+                           MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light) {
+            super.render(entity, yaw, tickDelta, matrices, vertexConsumers, light);
+        }
+
+        @Override
+        protected RenderLayer getRenderLayer(AmenBreak entity, boolean showBody, boolean translucent, boolean showOutline) {
+            if (GestaltRenderer.isBlockingFirstPersonView(entity)) {
+                return RenderLayer.getEntityTranslucent(TEXTURE);
+            }
+            return super.getRenderLayer(entity, showBody, translucent, showOutline);
+        }
+
+        @Override
+        public Identifier getTexture(AmenBreak entity) {
             return TEXTURE;
         }
     }

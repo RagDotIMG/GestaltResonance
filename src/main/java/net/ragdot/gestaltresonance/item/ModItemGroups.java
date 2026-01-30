@@ -16,6 +16,7 @@ public class ModItemGroups {
                     .icon(() -> new ItemStack(ModItems.ROTTEN_ESSENCE)).entries((displayContext, entries) -> {
                         entries.add(ModItems.POKEY_FEATHER);
                         entries.add(ModItems.ROTTEN_FEATHER);
+                        entries.add(ModItems.BLASTED_FEATHER);
                         entries.add(ModItems.ROTTEN_ESSENCE);
                     }).build());
 
