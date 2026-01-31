@@ -27,6 +27,8 @@ public class GestaltBase extends MobEntity {
     protected static final TrackedData<Integer> TARGET_ID = DataTracker.registerData(GestaltBase.class, TrackedDataHandlerRegistry.INTEGER);
     protected static final TrackedData<Boolean> IS_ATTACKING = DataTracker.registerData(GestaltBase.class, TrackedDataHandlerRegistry.BOOLEAN);
     protected static final TrackedData<Boolean> IS_THROWING = DataTracker.registerData(GestaltBase.class, TrackedDataHandlerRegistry.BOOLEAN);
+    protected static final TrackedData<Boolean> IS_WINDING_UP = DataTracker.registerData(GestaltBase.class, TrackedDataHandlerRegistry.BOOLEAN);
+    protected static final TrackedData<Boolean> IS_PUNCHING = DataTracker.registerData(GestaltBase.class, TrackedDataHandlerRegistry.BOOLEAN);
 
     protected PlayerEntity owner;
     protected UUID ownerUuid;
@@ -40,6 +42,8 @@ public class GestaltBase extends MobEntity {
     // === Combat state ===
     protected LivingEntity currentTarget;
     protected int attackCooldownTicks = 0; // simple per-stand cooldown
+    protected int punchingTicks = 0;
+    protected int windUpTicks = 0;
     
     // Smooth movement state
     private static final double SMOOTH_FACTOR = 0.1; // How much to move towards target each tick (0.0 to 1.0)
@@ -57,6 +61,8 @@ public class GestaltBase extends MobEntity {
         builder.add(TARGET_ID, -1);
         builder.add(IS_ATTACKING, false);
         builder.add(IS_THROWING, false);
+        builder.add(IS_WINDING_UP, false);
+        builder.add(IS_PUNCHING, false);
     }
 
     // ===== Shared attributes =====
@@ -200,7 +206,7 @@ public class GestaltBase extends MobEntity {
             }
 
             // Sync attack state to client
-            boolean isAttacking = currentTarget != null && attackCooldownTicks <= 0;
+            boolean isAttacking = currentTarget != null && (attackCooldownTicks <= 0 || this.dataTracker.get(IS_PUNCHING));
             if (this.dataTracker.get(IS_ATTACKING) != isAttacking) {
                 this.dataTracker.set(IS_ATTACKING, isAttacking);
             }
@@ -247,6 +253,16 @@ public class GestaltBase extends MobEntity {
         // 0) If ledge grabbing or guarding, don't do combat
         if (gestaltPlayer.gestaltresonance$isLedgeGrabbing() || gestaltPlayer.gestaltresonance$isGuarding()) {
             updatePositionToOwner();
+            if (!this.getWorld().isClient) {
+                if (this.dataTracker.get(IS_WINDING_UP)) {
+                    this.dataTracker.set(IS_WINDING_UP, false);
+                    this.windUpTicks = 0;
+                }
+                if (this.dataTracker.get(IS_PUNCHING)) {
+                    this.dataTracker.set(IS_PUNCHING, false);
+                    this.punchingTicks = 0;
+                }
+            }
             return;
         }
 
@@ -257,23 +273,50 @@ public class GestaltBase extends MobEntity {
         if (currentTarget == null || !currentTarget.isAlive()) {
             currentTarget = null;
             updatePositionToOwner();
+            if (this.dataTracker.get(IS_WINDING_UP)) {
+                this.dataTracker.set(IS_WINDING_UP, false);
+                this.windUpTicks = 0;
+            }
             return;
         }
 
         // 3) If target is too far from the OWNER, forget it and go back to owner
+        // Exception: don't lose target if we are already in the middle of a punch animation
         double maxRange = getMaxChaseRange();
         double distSqToOwner = owner.squaredDistanceTo(currentTarget);
-        if (distSqToOwner > maxRange * maxRange) {
+        if (distSqToOwner > maxRange * maxRange && !this.dataTracker.get(IS_PUNCHING)) {
             currentTarget = null;
             updatePositionToOwner();
+            if (this.dataTracker.get(IS_WINDING_UP)) {
+                this.dataTracker.set(IS_WINDING_UP, false);
+                this.windUpTicks = 0;
+            }
             return;
         }
 
         // 4) Position logic: move to target only if ready to attack, otherwise stay behind player
-        if (canMeleeAttack() && attackCooldownTicks <= 0) {
+        boolean isWindingUp = false;
+        boolean isPunching = this.dataTracker.get(IS_PUNCHING);
+        if (canMeleeAttack() && (attackCooldownTicks <= 0 || isPunching)) {
             moveNearMeleeTarget();
+            if (!isPunching) {
+                if (this.windUpTicks < 40) {
+                    isWindingUp = true;
+                    this.windUpTicks++;
+                } else {
+                    updatePositionToOwner();
+                }
+            } else {
+                this.windUpTicks = 0;
+            }
         } else {
             updatePositionToOwner();
+            this.windUpTicks = 0;
+        }
+
+        // Sync winding up state to client
+        if (this.dataTracker.get(IS_WINDING_UP) != isWindingUp) {
+            this.dataTracker.set(IS_WINDING_UP, isWindingUp);
         }
 
         // 5) Attack target if in reach and not on cooldown
@@ -404,7 +447,20 @@ public class GestaltBase extends MobEntity {
 
     /** Try to punch the current target with a cooldown and reach check. */
     protected void handleMeleeAttack() {
-        if (currentTarget == null || !currentTarget.isAlive()) return;
+        if (currentTarget == null || !currentTarget.isAlive()) {
+            if (punchingTicks > 0) {
+                punchingTicks = 0;
+                this.dataTracker.set(IS_PUNCHING, false);
+            }
+            return;
+        }
+
+        if (punchingTicks > 0) {
+            punchingTicks--;
+            if (punchingTicks <= 0) {
+                this.dataTracker.set(IS_PUNCHING, false);
+            }
+        }
 
         if (attackCooldownTicks > 0) {
             attackCooldownTicks--;
@@ -420,9 +476,11 @@ public class GestaltBase extends MobEntity {
         float damage = getAttackDamage();
         var source = this.getWorld().getDamageSources().mobAttack(this);
 
-        currentTarget.damage(source, damage);
-
-        attackCooldownTicks = getAttackCooldownTicks();
+        if (currentTarget.damage(source, damage)) {
+            attackCooldownTicks = getAttackCooldownTicks();
+            punchingTicks = 10;
+            this.dataTracker.set(IS_PUNCHING, true);
+        }
     }
 
 

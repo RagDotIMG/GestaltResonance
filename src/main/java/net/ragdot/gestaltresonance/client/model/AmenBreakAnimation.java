@@ -107,4 +107,10 @@ public class AmenBreakAnimation {
 
 	public static final Animation grab = Animation.Builder.create(0.1F).looping()
 		.build();
+
+	public static final Animation WindUp = Animation.Builder.create(0.5F).looping()
+		.build();
+
+	public static final Animation Punch = Animation.Builder.create(0.5F)
+		.build();
 }

@@ -242,10 +242,12 @@ public class ScorchedUtopiaModel extends SinglePartEntityModel<ScorchedUtopia> {
 	public void setAngles(ScorchedUtopia entity, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
 		this.getPart().traverse().forEach(ModelPart::resetTransform);
 
-  this.updateAnimation(entity.animationHelper.idleAnimationState, ScorchedUtopianimation.idle, ageInTicks, 1f);
+  this.updateAnimation(entity.animationHelper.idleAnimationState, ScorchedUtopianimation.Idle, ageInTicks, 1f);
   this.updateAnimation(entity.animationHelper.guardAnimationState, ScorchedUtopianimation.Guard, ageInTicks, 1f);
   this.updateAnimation(entity.animationHelper.throwAnimationState, ScorchedUtopianimation.Throw, ageInTicks, 1f);
   this.updateAnimation(entity.animationHelper.grabAnimationState, ScorchedUtopianimation.grab, ageInTicks, 1f);
+  this.updateAnimation(entity.animationHelper.windUpAnimationState, ScorchedUtopianimation.WindUp, ageInTicks, 1f);
+  this.updateAnimation(entity.animationHelper.punchAnimationState, ScorchedUtopianimation.Punch, ageInTicks, 2f);
 	}
 
 	@Override

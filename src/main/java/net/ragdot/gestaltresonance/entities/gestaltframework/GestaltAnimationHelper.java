@@ -9,6 +9,8 @@ public class GestaltAnimationHelper {
     public final AnimationState guardAnimationState = new AnimationState();
     public final AnimationState throwAnimationState = new AnimationState();
     public final AnimationState grabAnimationState = new AnimationState();
+    public final AnimationState windUpAnimationState = new AnimationState();
+    public final AnimationState punchAnimationState = new AnimationState();
     private int idleAnimationTimeout = 0;
 
     private final GestaltBase gestalt;
@@ -48,6 +50,23 @@ public class GestaltAnimationHelper {
                 anyOtherAnimationRunning = true;
             } else {
                 this.throwAnimationState.stop();
+            }
+
+            // WindUp animation
+            if (gestalt.getDataTracker().get(GestaltBase.IS_WINDING_UP) && !gestalt.getDataTracker().get(GestaltBase.IS_PUNCHING)) {
+                this.windUpAnimationState.startIfNotRunning(gestalt.age);
+                anyOtherAnimationRunning = true;
+            } else {
+                this.windUpAnimationState.stop();
+            }
+
+            // Punch animation
+            if (gestalt.getDataTracker().get(GestaltBase.IS_PUNCHING)) {
+                this.punchAnimationState.startIfNotRunning(gestalt.age);
+                this.windUpAnimationState.stop(); // Ensure WindUp stops if Punch starts
+                anyOtherAnimationRunning = true;
+            } else {
+                this.punchAnimationState.stop();
             }
 
             // Idle animation handling
