@@ -1,4 +1,5 @@
 package net.ragdot.gestaltresonance.entities;
+import net.ragdot.gestaltresonance.entities.gestaltframework.GestaltBase;
 import net.ragdot.gestaltresonance.util.IGestaltPlayer;
 
 

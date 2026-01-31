@@ -16,7 +16,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.ragdot.gestaltresonance.effect.ModStatusEffects;
 import net.ragdot.gestaltresonance.entities.AmenBreak;
-import net.ragdot.gestaltresonance.entities.GestaltBase;
+import net.ragdot.gestaltresonance.entities.gestaltframework.GestaltBase;
 import net.ragdot.gestaltresonance.entities.ScorchedUtopia;
 import net.ragdot.gestaltresonance.item.ModItemGroups;
 import net.ragdot.gestaltresonance.item.ModItems;

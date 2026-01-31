@@ -1,9 +1,8 @@
-package net.ragdot.gestaltresonance.entities;
+package net.ragdot.gestaltresonance.entities.gestaltframework;
 
 import net.minecraft.entity.data.DataTracker;
 import net.minecraft.entity.data.TrackedData;
 import net.minecraft.entity.data.TrackedDataHandlerRegistry;
-import net.minecraft.entity.AnimationState;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.attribute.DefaultAttributeContainer;
@@ -12,7 +11,6 @@ import net.minecraft.entity.mob.HostileEntity;
 import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 
@@ -33,11 +31,7 @@ public class GestaltBase extends MobEntity {
     protected PlayerEntity owner;
     protected UUID ownerUuid;
 
-    public final AnimationState idleAnimationState = new AnimationState();
-    public final AnimationState guardAnimationState = new AnimationState();
-    public final AnimationState throwAnimationState = new AnimationState();
-    public final AnimationState grabAnimationState = new AnimationState();
-    private int idleAnimationTimeout = 0;
+    public final GestaltAnimationHelper animationHelper = new GestaltAnimationHelper(this);
 
 
     // Gestalt Throw detection
@@ -174,7 +168,7 @@ public class GestaltBase extends MobEntity {
     public void tick() {
         super.tick();
 
-        this.setupAnimationStates();
+        this.animationHelper.updateAnimationStates();
         this.setNoGravity(true);
         this.noClip = true;
         this.velocityModified = true;
@@ -580,49 +574,6 @@ public class GestaltBase extends MobEntity {
         }
     }
 
-    // ===== idle behavior =====
-    protected void setupAnimationStates() {
-        if (this.getWorld().isClient) {
-            PlayerEntity owner = getOwner();
-            boolean anyOtherAnimationRunning = false;
-
-            if (owner != null) {
-                IGestaltPlayer gp = (IGestaltPlayer) owner;
-                
-                // Guard animation
-                if (gp.gestaltresonance$isGuarding()) {
-                    this.guardAnimationState.startIfNotRunning(this.age);
-                    anyOtherAnimationRunning = true;
-                } else {
-                    this.guardAnimationState.stop();
-                }
-
-                // Grab animation
-                if (gp.gestaltresonance$isLedgeGrabbing()) {
-                    this.grabAnimationState.startIfNotRunning(this.age);
-                    anyOtherAnimationRunning = true;
-                } else {
-                    this.grabAnimationState.stop();
-                }
-            }
-
-            // Throw animation
-            if (this.dataTracker.get(IS_THROWING)) {
-                this.throwAnimationState.startIfNotRunning(this.age);
-                anyOtherAnimationRunning = true;
-            } else {
-                this.throwAnimationState.stop();
-            }
-
-            // Idle animation handling
-            if (anyOtherAnimationRunning) {
-                this.idleAnimationState.stop();
-                this.idleAnimationTimeout = 0;
-            } else {
-                this.idleAnimationState.startIfNotRunning(this.age);
-            }
-        }
-    }
 
     @Override
     public boolean damage(net.minecraft.entity.damage.DamageSource source, float amount) {

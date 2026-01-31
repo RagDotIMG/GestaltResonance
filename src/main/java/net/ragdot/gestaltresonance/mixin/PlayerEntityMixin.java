@@ -2,7 +2,7 @@ package net.ragdot.gestaltresonance.mixin;
 
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.world.ServerWorld;
-import net.ragdot.gestaltresonance.entities.GestaltBase;
+import net.ragdot.gestaltresonance.entities.gestaltframework.GestaltBase;
 import net.ragdot.gestaltresonance.util.IGestaltPlayer;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;

@@ -7,6 +7,7 @@ import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityModelLayerRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
 import net.ragdot.gestaltresonance.client.model.AmenBreakModel;
+import net.ragdot.gestaltresonance.entities.gestaltframework.GestaltBase;
 import net.ragdot.gestaltresonance.network.ToggleGestaltSummonPayload;
 import net.ragdot.gestaltresonance.network.ToggleGuardModePayload;
 import net.ragdot.gestaltresonance.network.ToggleLedgeGrabPayload;
@@ -26,7 +27,6 @@ import net.minecraft.util.Identifier;
 import org.lwjgl.glfw.GLFW;
 import net.ragdot.gestaltresonance.Gestaltresonance;
 import net.ragdot.gestaltresonance.client.model.ScorchedUtopiaModel;
-import net.ragdot.gestaltresonance.entities.GestaltBase;
 import net.ragdot.gestaltresonance.entities.AmenBreak;
 import net.ragdot.gestaltresonance.entities.ScorchedUtopia;
 

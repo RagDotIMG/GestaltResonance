@@ -7,7 +7,7 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Vec3d;
 import net.ragdot.gestaltresonance.entities.AmenBreak;
-import net.ragdot.gestaltresonance.entities.GestaltBase;
+import net.ragdot.gestaltresonance.entities.gestaltframework.GestaltBase;
 import net.ragdot.gestaltresonance.entities.ScorchedUtopia;
 import net.ragdot.gestaltresonance.network.GestaltThrowPayload;
 import net.ragdot.gestaltresonance.network.ToggleGestaltSummonPayload;
