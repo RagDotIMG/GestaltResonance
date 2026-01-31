@@ -1,8 +1,7 @@
 package net.ragdot.gestaltresonance.entities;
+
+
 import net.ragdot.gestaltresonance.entities.gestaltframework.GestaltBase;
-import net.ragdot.gestaltresonance.util.IGestaltPlayer;
-
-
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.attribute.DefaultAttributeContainer;
 import net.minecraft.world.World;

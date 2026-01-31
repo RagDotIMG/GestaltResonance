@@ -33,7 +33,7 @@ public class Gestaltresonance implements ModInitializer {
             Registries.ENTITY_TYPE,
             Identifier.of(MOD_ID, "gestalt"),
             EntityType.Builder
-                    .<GestaltBase>create(GestaltBase::new, SpawnGroup.MISC)
+                    .create(GestaltBase::new, SpawnGroup.MISC)
                     .dimensions(0.5f, 1.6f)
                     .build("gestalt")
     );
@@ -42,7 +42,7 @@ public class Gestaltresonance implements ModInitializer {
             Registries.ENTITY_TYPE,
             Identifier.of(MOD_ID, "scorched_utopia"),
             EntityType.Builder
-                    .<ScorchedUtopia>create(ScorchedUtopia::new, SpawnGroup.MISC)
+                    .create(ScorchedUtopia::new, SpawnGroup.MISC)
                     .dimensions(0.75f, 1.75f)
                     .build("scorched_utopia")
     );
@@ -51,7 +51,7 @@ public class Gestaltresonance implements ModInitializer {
             Registries.ENTITY_TYPE,
             Identifier.of(MOD_ID, "amen_break"),
             EntityType.Builder
-                    .<AmenBreak>create(AmenBreak::new, SpawnGroup.MISC)
+                    .create(AmenBreak::new, SpawnGroup.MISC)
                     .dimensions(0.5f, 1.6f)
                     .build("amen_break")
     );

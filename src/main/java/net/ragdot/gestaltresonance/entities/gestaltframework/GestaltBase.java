@@ -298,16 +298,16 @@ public class GestaltBase extends MobEntity {
         // === 1) Prioritize whoever is attacking the owner ===
         {
             var attacker = owner.getAttacker(); // last entity that hurt the owner
-            if (attacker instanceof LivingEntity living && attacker instanceof HostileEntity) {
+            if (attacker instanceof HostileEntity hostile) {
                 // Only consider if within chase range
-                if (owner.squaredDistanceTo(living) <= maxRangeSq) {
+                if (owner.squaredDistanceTo(hostile) <= maxRangeSq) {
                     boolean shouldSwitch = false;
 
                     if (currentTarget == null || !currentTarget.isAlive()) {
                         shouldSwitch = true;
                     } else {
                         double currentDistSq = owner.squaredDistanceTo(currentTarget);
-                        double attackerDistSq = owner.squaredDistanceTo(living);
+                        double attackerDistSq = owner.squaredDistanceTo(hostile);
                         // Prefer closer attacker
                         if (attackerDistSq + 0.01 < currentDistSq) {
                             shouldSwitch = true;
@@ -315,7 +315,7 @@ public class GestaltBase extends MobEntity {
                     }
 
                     if (shouldSwitch) {
-                        currentTarget = living;
+                        currentTarget = hostile;
                         return; // attacker takes full priority
                     }
                 }
@@ -325,13 +325,13 @@ public class GestaltBase extends MobEntity {
         // === 2) Fallback: whoever the owner is attacking ===
         {
             var attacking = owner.getAttacking(); // last entity owner attacked
-            if (attacking instanceof LivingEntity living && attacking instanceof HostileEntity) {
-                if (owner.squaredDistanceTo(living) <= maxRangeSq) {
-                    if (currentTarget != living || !currentTarget.isAlive()) {
-                        currentTarget = living;
+            if (attacking instanceof HostileEntity hostile) {
+                if (owner.squaredDistanceTo(hostile) <= maxRangeSq) {
+                    if (currentTarget != hostile || !currentTarget.isAlive()) {
+                        currentTarget = hostile;
                         return;
                     }
-                    if (currentTarget == living) return;
+                    if (currentTarget == hostile) return;
                 }
             }
         }
