@@ -11,6 +11,7 @@ import net.ragdot.gestaltresonance.entities.gestaltframework.GestaltBase;
 import net.ragdot.gestaltresonance.network.ToggleGestaltSummonPayload;
 import net.ragdot.gestaltresonance.network.ToggleGuardModePayload;
 import net.ragdot.gestaltresonance.network.ToggleLedgeGrabPayload;
+import net.ragdot.gestaltresonance.network.UsePowerPayload;
 import net.ragdot.gestaltresonance.util.IGestaltPlayer;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.KeyBinding;
@@ -34,18 +35,51 @@ public class GestaltresonanceClient implements ClientModInitializer {
 
     // Client-side key binding: “summon / dismiss Gestalt”
     private static KeyBinding summonGestaltKey;
+    private static KeyBinding power1Key;
+    private static KeyBinding power2Key;
+    private static KeyBinding power3Key;
+    
     private static boolean wasSpacePressedLastTick = false;
     private static boolean wasOnGroundLastTick = true;
 
     @Override
     public void onInitializeClient() {
         // === Keybind setup ===
+        String category = "category.gestaltresonance.gestalt";
+        
         summonGestaltKey = KeyBindingHelper.registerKeyBinding(
                 new KeyBinding(
                         "key.gestaltresonance.summon_gestalt", // translation key
                         InputUtil.Type.KEYSYM,
                         GLFW.GLFW_KEY_G,                         // default key: G
-                        "category.gestaltresonance.gestalt"      // controls category
+                        category      // controls category
+                )
+        );
+
+        power1Key = KeyBindingHelper.registerKeyBinding(
+                new KeyBinding(
+                        "key.gestaltresonance.power1",
+                        InputUtil.Type.KEYSYM,
+                        GLFW.GLFW_KEY_Z,
+                        category
+                )
+        );
+
+        power2Key = KeyBindingHelper.registerKeyBinding(
+                new KeyBinding(
+                        "key.gestaltresonance.power2",
+                        InputUtil.Type.KEYSYM,
+                        GLFW.GLFW_KEY_X,
+                        category
+                )
+        );
+
+        power3Key = KeyBindingHelper.registerKeyBinding(
+                new KeyBinding(
+                        "key.gestaltresonance.power3",
+                        InputUtil.Type.KEYSYM,
+                        GLFW.GLFW_KEY_C,
+                        category
                 )
         );
 
@@ -62,6 +96,24 @@ public class GestaltresonanceClient implements ClientModInitializer {
             while (summonGestaltKey.wasPressed()) {
                 if (client.player != null && client.world != null) {
                     ClientPlayNetworking.send(new ToggleGestaltSummonPayload());
+                }
+            }
+
+            while (power1Key.wasPressed()) {
+                if (client.player != null && client.world != null) {
+                    ClientPlayNetworking.send(new UsePowerPayload(0));
+                }
+            }
+
+            while (power2Key.wasPressed()) {
+                if (client.player != null && client.world != null) {
+                    ClientPlayNetworking.send(new UsePowerPayload(1));
+                }
+            }
+
+            while (power3Key.wasPressed()) {
+                if (client.player != null && client.world != null) {
+                    ClientPlayNetworking.send(new UsePowerPayload(2));
                 }
             }
 
@@ -129,14 +181,20 @@ public class GestaltresonanceClient implements ClientModInitializer {
                                     pos.getY() - 0.6,
                                     targetBlockCenter.z + sideVec.z * 1.5
                                 );
-                                net.minecraft.util.math.Vec3d dirToLedge = targetBlockCenter.subtract(predictedPullTarget).withAxis(net.minecraft.util.math.Direction.Axis.Y, 0).normalize();
+
+                                // Position directly in front of the player facing straight ahead
+                                float targetYaw = client.player.getYaw();
+                                double rad = Math.toRadians(targetYaw);
+                                double frontX = -Math.sin(rad);
+                                double frontZ = Math.cos(rad);
+
                                 net.minecraft.util.math.Vec3d gestaltPos = new net.minecraft.util.math.Vec3d(
-                                    predictedPullTarget.x + dirToLedge.x * 0.3,
+                                    predictedPullTarget.x + frontX * 0.5,
                                     predictedPullTarget.y + client.player.getEyeHeight(client.player.getPose()) - 1.1,
-                                    predictedPullTarget.z + dirToLedge.z * 0.3
+                                    predictedPullTarget.z + frontZ * 0.5
                                 );
                                 gestaltPlayer.gestaltresonance$setLedgeGrabGestaltPos(gestaltPos);
-                                gestaltPlayer.gestaltresonance$setLedgeGrabGestaltYaw(client.player.getYaw());
+                                gestaltPlayer.gestaltresonance$setLedgeGrabGestaltYaw(targetYaw);
 
                                 ClientPlayNetworking.send(new ToggleLedgeGrabPayload(true, java.util.Optional.of(pos), java.util.Optional.of(side)));
                             }

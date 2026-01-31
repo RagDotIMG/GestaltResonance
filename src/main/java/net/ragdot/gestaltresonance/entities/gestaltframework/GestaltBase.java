@@ -440,6 +440,22 @@ public class GestaltBase extends MobEntity {
 
         boolean isGuarding = ((IGestaltPlayer) owner).gestaltresonance$isGuarding();
         boolean isLedgeGrabbing = ((IGestaltPlayer) owner).gestaltresonance$isLedgeGrabbing();
+        boolean isThrowing = this.dataTracker.get(IS_THROWING);
+
+        if (isThrowing) {
+            // Throw mode: Directly behind the player
+            double backOffset = -0.5;
+            double rad = Math.toRadians(yaw);
+            double backX = -Math.sin(rad);
+            double backZ = Math.cos(rad);
+
+            double targetX = playerX + backOffset * backX;
+            double targetZ = playerZ + backOffset * backZ;
+            double targetY = playerY + heightOffset;
+
+            applySmoothPosition(targetX, targetY, targetZ, yaw, false);
+            return;
+        }
 
         if (isLedgeGrabbing) {
             Vec3d fixedPos = ((IGestaltPlayer) owner).gestaltresonance$getLedgeGrabGestaltPos();
@@ -450,24 +466,18 @@ public class GestaltBase extends MobEntity {
             }
             
             // Fallback if fixedPos is not yet synced or available
-            net.minecraft.util.math.BlockPos ledgePos = ((IGestaltPlayer) owner).gestaltresonance$getLedgeGrabPos();
-            if (ledgePos != null) {
-                Vec3d targetBlockCenter = new Vec3d(ledgePos.getX() + 0.5, ledgePos.getY() + 0.5, ledgePos.getZ() + 0.5);
-                Vec3d playerPos = owner.getPos();
-                
-                // Calculate direction from player to target block (horizontal only)
-                Vec3d dirToLedge = new Vec3d(targetBlockCenter.x - playerPos.x, 0, targetBlockCenter.z - playerPos.z).normalize();
-                
-                // 0.3 blocks closer to the target block
-                double targetX = playerX + dirToLedge.x * 0.3;
-                double targetZ = playerZ + dirToLedge.z * 0.3;
-                
-                // 1.1 blocks lower than the player eye level (was +0.2, lowered by 1.3)
-                double targetY = owner.getY() + owner.getEyeHeight(owner.getPose()) - 1.1;
+            // Position directly in front of the player facing straight ahead
+            double frontOffset = 0.5;
+            double rad = Math.toRadians(yaw);
+            double frontX = -Math.sin(rad);
+            double frontZ = Math.cos(rad);
 
-                applySmoothPosition(targetX, targetY, targetZ, yaw, false);
-                return;
-            }
+            double targetX = playerX + frontOffset * frontX;
+            double targetZ = playerZ + frontOffset * frontZ;
+            double targetY = owner.getY() + owner.getEyeHeight(owner.getPose()) - 1.4;
+
+            applySmoothPosition(targetX, targetY, targetZ, yaw, false);
+            return;
         }
 
         if (isGuarding) {
@@ -479,7 +489,7 @@ public class GestaltBase extends MobEntity {
 
             double targetX = playerX + frontOffset * frontX;
             double targetZ = playerZ + frontOffset * frontZ;
-            double targetY = playerY + heightOffset;
+            double targetY = playerY + heightOffset - 0.5;
 
             applySmoothPosition(targetX, targetY, targetZ, yaw, false);
         } else {

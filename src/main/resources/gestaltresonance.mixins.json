@@ -11,6 +11,7 @@
     "GestaltAlphaMixin"
   ],
   "client": [
+    "MinecraftClientMixin"
   ],
   "injectors": {
     "defaultRequire": 1

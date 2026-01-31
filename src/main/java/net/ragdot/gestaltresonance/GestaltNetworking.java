@@ -13,6 +13,7 @@ import net.ragdot.gestaltresonance.network.GestaltThrowPayload;
 import net.ragdot.gestaltresonance.network.ToggleGestaltSummonPayload;
 import net.ragdot.gestaltresonance.network.ToggleGuardModePayload;
 import net.ragdot.gestaltresonance.network.ToggleLedgeGrabPayload;
+import net.ragdot.gestaltresonance.network.UsePowerPayload;
 import net.ragdot.gestaltresonance.util.IGestaltPlayer;
 
 import java.util.List;
@@ -37,6 +38,10 @@ public class GestaltNetworking {
                 GestaltThrowPayload.ID,
                 GestaltThrowPayload.CODEC
         );
+        PayloadTypeRegistry.playC2S().register(
+                UsePowerPayload.ID,
+                UsePowerPayload.CODEC
+        );
 
         // 2) Register server handlers
         ServerPlayNetworking.registerGlobalReceiver(ToggleGestaltSummonPayload.ID, (payload, context) -> {
@@ -54,6 +59,25 @@ public class GestaltNetworking {
         ServerPlayNetworking.registerGlobalReceiver(GestaltThrowPayload.ID, (payload, context) -> {
             context.server().execute(() -> handleGestaltThrow(context.player(), payload.active()));
         });
+
+        ServerPlayNetworking.registerGlobalReceiver(UsePowerPayload.ID, (payload, context) -> {
+            context.server().execute(() -> handleUsePower(context.player(), payload.powerIndex()));
+        });
+    }
+
+    private static void handleUsePower(ServerPlayerEntity player, int powerIndex) {
+        if (powerIndex == 0) {
+            ServerWorld world = player.getServerWorld();
+            List<ScorchedUtopia> stands = world.getEntitiesByClass(
+                    ScorchedUtopia.class,
+                    player.getBoundingBox().expand(256.0),
+                    stand -> player.getUuid().equals(stand.getOwnerUuid())
+            );
+
+            for (ScorchedUtopia stand : stands) {
+                stand.setAuraActive(!stand.isAuraActive());
+            }
+        }
     }
 
     private static void handleGestaltThrow(ServerPlayerEntity player, boolean active) {
@@ -101,14 +125,19 @@ public class GestaltNetworking {
                 player.teleport(pullTarget.x, pullTarget.y, pullTarget.z, false);
                 
                 // Calculate and store the fixed Gestalt position during ledge grab
-                Vec3d dirToLedge = targetBlockCenter.subtract(pullTarget).withAxis(net.minecraft.util.math.Direction.Axis.Y, 0).normalize();
+                // Position directly in front of the player facing straight ahead
+                float targetYaw = player.getYaw();
+                double rad = Math.toRadians(targetYaw);
+                double frontX = -Math.sin(rad);
+                double frontZ = Math.cos(rad);
+                
                 Vec3d gestaltPos = new Vec3d(
-                    pullTarget.x + dirToLedge.x * 0.3,
+                    pullTarget.x + frontX * 0.5,
                     pullTarget.y + player.getEyeHeight(player.getPose()) - 1.1,
-                    pullTarget.z + dirToLedge.z * 0.3
+                    pullTarget.z + frontZ * 0.5
                 );
                 gestaltPlayer.gestaltresonance$setLedgeGrabGestaltPos(gestaltPos);
-                gestaltPlayer.gestaltresonance$setLedgeGrabGestaltYaw(player.getYaw());
+                gestaltPlayer.gestaltresonance$setLedgeGrabGestaltYaw(targetYaw);
                 
                 // Immediately update client with the new position to avoid local freezing before sync
                 player.networkHandler.requestTeleport(pullTarget.x, pullTarget.y, pullTarget.z, player.getYaw(), player.getPitch());

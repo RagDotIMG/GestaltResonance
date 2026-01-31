@@ -12,19 +12,69 @@ import net.ragdot.gestaltresonance.effect.ModStatusEffects;
 import java.util.List;
 
 public class ScorchedUtopia extends GestaltBase {
-
+    protected static final net.minecraft.entity.data.TrackedData<Boolean> IS_AURA_ACTIVE = net.minecraft.entity.data.DataTracker.registerData(ScorchedUtopia.class, net.minecraft.entity.data.TrackedDataHandlerRegistry.BOOLEAN);
 
     public ScorchedUtopia(EntityType<? extends ScorchedUtopia> type, World world) {
         super(type, world);
     }
 
     @Override
+    protected void initDataTracker(net.minecraft.entity.data.DataTracker.Builder builder) {
+        super.initDataTracker(builder);
+        builder.add(IS_AURA_ACTIVE, false);
+    }
+
+    @Override
     public void tick() {
         super.tick();
 
-        if (!this.getWorld().isClient && this.age % 20 == 0) {
-            applyRottingAura();
+        if (this.isAuraActive()) {
+            if (!this.getWorld().isClient) {
+                if (this.age % 20 == 0) {
+                    applyRottingAura();
+                }
+            } else {
+                spawnAuraParticles();
+            }
         }
+    }
+
+    private void spawnAuraParticles() {
+        double range = 5.0;
+        if (this.random.nextFloat() < 0.3f) {
+            double angle = this.random.nextDouble() * Math.PI * 2;
+            double dist = this.random.nextDouble() * range;
+            double offsetX = Math.cos(angle) * dist;
+            double offsetZ = Math.sin(angle) * dist;
+
+            net.minecraft.util.math.BlockPos floorPos = net.minecraft.util.math.BlockPos.ofFloored(this.getX() + offsetX, this.getY(), this.getZ() + offsetZ);
+            // Try to find the floor
+            for (int i = 0; i < 3; i++) {
+                if (this.getWorld().getBlockState(floorPos).isSolidBlock(this.getWorld(), floorPos)) {
+                    break;
+                }
+                floorPos = floorPos.down();
+            }
+            
+            double spawnY = floorPos.getY() + 1.05; // slightly above floor
+            
+            // Brownish red color: R=0.5, G=0.1, B=0.1
+            this.getWorld().addParticle(
+                net.minecraft.particle.EntityEffectParticleEffect.create(net.minecraft.particle.ParticleTypes.ENTITY_EFFECT, 0.5f, 0.1f, 0.1f),
+                this.getX() + offsetX,
+                spawnY,
+                this.getZ() + offsetZ,
+                0, 0, 0
+            );
+        }
+    }
+
+    public boolean isAuraActive() {
+        return this.dataTracker.get(IS_AURA_ACTIVE);
+    }
+
+    public void setAuraActive(boolean active) {
+        this.dataTracker.set(IS_AURA_ACTIVE, active);
     }
 
     private void applyRottingAura() {

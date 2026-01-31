@@ -5,5 +5,10 @@
   "item.gestaltresonance.rotten_essence": "Rotten Essence",
   "item.gestaltresonance.neather_tear": "Nether Tear",
   "itemgroup.gestaltresonance.gestalt_resonance": "Gestalt Resonance",
-  "effect.gestaltresonance.rotting": "Rotting"
+  "effect.gestaltresonance.rotting": "Rotting",
+  "category.gestaltresonance.gestalt": "Gestalt Resonance",
+  "key.gestaltresonance.summon_gestalt": "Summon/Dismiss Gestalt",
+  "key.gestaltresonance.power1": "Gestalt Power 1",
+  "key.gestaltresonance.power2": "Gestalt Power 2",
+  "key.gestaltresonance.power3": "Gestalt Power 3"
 }

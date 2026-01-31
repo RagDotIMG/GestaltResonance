@@ -1,6 +1,7 @@
 package net.ragdot.gestaltresonance.entities.gestaltframework;
 
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.mob.HostileEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.projectile.ProjectileEntity;
 import net.minecraft.util.math.Vec3d;
@@ -53,10 +54,10 @@ public class GestaltAbilityHelper {
         PlayerEntity owner = gestalt.getOwner();
         if (owner == null) return;
 
-        double radius = 1.5;
+        double radius = 2.0;
         var entities = gestalt.getWorld().getOtherEntities(gestalt, gestalt.getBoundingBox().expand(radius));
         Vec3d playerFacing = owner.getRotationVec(1.0f);
-        Vec3d playerFacingFlat = new Vec3d(playerFacing.x, 0, playerFacing.z).normalize();
+        Vec3d playerFacingFlat = new Vec3d(playerFacing.x, -0.5, playerFacing.z).normalize();
 
         for (var entity : entities) {
             if (entity == owner) continue;
@@ -73,8 +74,8 @@ public class GestaltAbilityHelper {
                         projectile.setVelocity(projVel.multiply(-0.5));
                         projectile.velocityModified = true;
                     }
-                } else if (entity instanceof LivingEntity) {
-                    if (toEntity.lengthSquared() < 2.25) { // 1.5 blocks
+                } else if (entity instanceof HostileEntity) {
+                    if (toEntity.lengthSquared() < 4.0) { // 2.0 blocks
                         Vec3d pushDir = toEntityFlat.multiply(0.3);
                         entity.addVelocity(pushDir.x, 0.1, pushDir.z);
                         entity.velocityModified = true;
