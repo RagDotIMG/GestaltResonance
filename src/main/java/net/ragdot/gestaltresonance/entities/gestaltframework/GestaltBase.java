@@ -171,8 +171,6 @@ public class GestaltBase extends MobEntity {
         this.abilityHelper.updateAbilities();
         this.setNoGravity(true);
         this.noClip = true;
-        this.velocityModified = true;
-        this.setVelocity(Vec3d.ZERO);
 
         // Re-link owner if necessary
         if (this.owner == null || !this.owner.isAlive()) {
@@ -436,10 +434,11 @@ public class GestaltBase extends MobEntity {
         double playerY = owner.getY();
         double playerZ = owner.getZ();
         float yaw = owner.getYaw();
-        double heightOffset = 0.3;
+        double heightOffset = getHeightOffset();
 
-        boolean isGuarding = ((IGestaltPlayer) owner).gestaltresonance$isGuarding();
-        boolean isLedgeGrabbing = ((IGestaltPlayer) owner).gestaltresonance$isLedgeGrabbing();
+        IGestaltPlayer gp = (IGestaltPlayer) owner;
+        boolean isGuarding = gp.gestaltresonance$isGuarding();
+        boolean isLedgeGrabbing = gp.gestaltresonance$isLedgeGrabbing();
         boolean isThrowing = this.dataTracker.get(IS_THROWING);
 
         if (isThrowing) {
@@ -458,8 +457,8 @@ public class GestaltBase extends MobEntity {
         }
 
         if (isLedgeGrabbing) {
-            Vec3d fixedPos = ((IGestaltPlayer) owner).gestaltresonance$getLedgeGrabGestaltPos();
-            float fixedYaw = ((IGestaltPlayer) owner).gestaltresonance$getLedgeGrabGestaltYaw();
+            Vec3d fixedPos = gp.gestaltresonance$getLedgeGrabGestaltPos();
+            float fixedYaw = gp.gestaltresonance$getLedgeGrabGestaltYaw();
             if (fixedPos != null) {
                 applySmoothPosition(fixedPos.x, fixedPos.y, fixedPos.z, fixedYaw, false);
                 return;
@@ -494,8 +493,8 @@ public class GestaltBase extends MobEntity {
             applySmoothPosition(targetX, targetY, targetZ, yaw, false);
         } else {
             // Normal mode: Slightly behind and to the side
-            double backOffset = -0.9;
-            double sideOffset = 0.9;  // to the right
+            double backOffset = getFollowBackOffset();
+            double sideOffset = getFollowSideOffset();
 
             double rad = Math.toRadians(yaw);
 
@@ -510,6 +509,18 @@ public class GestaltBase extends MobEntity {
 
             applySmoothPosition(targetX, targetY, targetZ, yaw, false);
         }
+    }
+
+    protected double getHeightOffset() {
+        return 0.3;
+    }
+
+    protected double getFollowBackOffset() {
+        return -0.9;
+    }
+
+    protected double getFollowSideOffset() {
+        return 0.9;
     }
 
 

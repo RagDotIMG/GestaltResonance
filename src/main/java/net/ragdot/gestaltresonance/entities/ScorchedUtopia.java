@@ -3,23 +3,29 @@ import net.ragdot.gestaltresonance.entities.gestaltframework.GestaltBase;
 
 
 import net.minecraft.entity.EntityType;
+import net.minecraft.entity.data.DataTracker;
+import net.minecraft.entity.data.TrackedData;
+import net.minecraft.entity.data.TrackedDataHandlerRegistry;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.mob.HostileEntity;
 import net.minecraft.entity.attribute.DefaultAttributeContainer;
+import net.minecraft.particle.EntityEffectParticleEffect;
+import net.minecraft.particle.ParticleTypes;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.ragdot.gestaltresonance.effect.ModStatusEffects;
 
 import java.util.List;
 
 public class ScorchedUtopia extends GestaltBase {
-    protected static final net.minecraft.entity.data.TrackedData<Boolean> IS_AURA_ACTIVE = net.minecraft.entity.data.DataTracker.registerData(ScorchedUtopia.class, net.minecraft.entity.data.TrackedDataHandlerRegistry.BOOLEAN);
+    protected static final TrackedData<Boolean> IS_AURA_ACTIVE = DataTracker.registerData(ScorchedUtopia.class, TrackedDataHandlerRegistry.BOOLEAN);
 
     public ScorchedUtopia(EntityType<? extends ScorchedUtopia> type, World world) {
         super(type, world);
     }
 
     @Override
-    protected void initDataTracker(net.minecraft.entity.data.DataTracker.Builder builder) {
+    protected void initDataTracker(DataTracker.Builder builder) {
         super.initDataTracker(builder);
         builder.add(IS_AURA_ACTIVE, false);
     }
@@ -47,7 +53,7 @@ public class ScorchedUtopia extends GestaltBase {
             double offsetX = Math.cos(angle) * dist;
             double offsetZ = Math.sin(angle) * dist;
 
-            net.minecraft.util.math.BlockPos floorPos = net.minecraft.util.math.BlockPos.ofFloored(this.getX() + offsetX, this.getY(), this.getZ() + offsetZ);
+            BlockPos floorPos = BlockPos.ofFloored(this.getX() + offsetX, this.getY(), this.getZ() + offsetZ);
             // Try to find the floor
             for (int i = 0; i < 3; i++) {
                 if (this.getWorld().getBlockState(floorPos).isSolidBlock(this.getWorld(), floorPos)) {
@@ -60,7 +66,7 @@ public class ScorchedUtopia extends GestaltBase {
             
             // Brownish red color: R=0.5, G=0.1, B=0.1
             this.getWorld().addParticle(
-                net.minecraft.particle.EntityEffectParticleEffect.create(net.minecraft.particle.ParticleTypes.ENTITY_EFFECT, 0.5f, 0.1f, 0.1f),
+                EntityEffectParticleEffect.create(ParticleTypes.ENTITY_EFFECT, 0.5f, 0.1f, 0.1f),
                 this.getX() + offsetX,
                 spawnY,
                 this.getZ() + offsetZ,

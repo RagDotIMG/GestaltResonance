@@ -1,5 +1,3 @@
-/gamemode survival
-/reload
 /recipe give @p gestaltresonance:pokey_feather
 /recipe give @p gestaltresonance:rotten_feather
 /datapack list
@@ -48,3 +46,5 @@
 /gamemode creative
 /gamemode survival
 /time set day
+/gamemode creative
+/gamemode survival

@@ -104,9 +104,9 @@ public class Gestaltresonance implements ModInitializer {
         stand.setOwner(owner);
 
         stand.refreshPositionAndAngles(
-                owner.getX(),
-                owner.getY(),
-                owner.getZ(),
+                pos.getX() + 0.5,
+                pos.getY(),
+                pos.getZ() + 0.5,
                 owner.getYaw(),
                 0.0f
         );
