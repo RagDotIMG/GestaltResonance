@@ -243,7 +243,7 @@ public class ScorchedUtopiaModel extends SinglePartEntityModel<ScorchedUtopia> {
 		this.getPart().traverse().forEach(ModelPart::resetTransform);
 
   this.updateAnimation(entity.animationHelper.idleAnimationState, ScorchedUtopianimation.idle, ageInTicks, 1f);
-  this.updateAnimation(entity.animationHelper.guardAnimationState, ScorchedUtopianimation.Gaurd, ageInTicks, 1f);
+  this.updateAnimation(entity.animationHelper.guardAnimationState, ScorchedUtopianimation.Guard, ageInTicks, 1f);
   this.updateAnimation(entity.animationHelper.throwAnimationState, ScorchedUtopianimation.Throw, ageInTicks, 1f);
   this.updateAnimation(entity.animationHelper.grabAnimationState, ScorchedUtopianimation.grab, ageInTicks, 1f);
 	}

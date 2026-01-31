@@ -32,18 +32,17 @@ public class GestaltBase extends MobEntity {
     protected UUID ownerUuid;
 
     public final GestaltAnimationHelper animationHelper = new GestaltAnimationHelper(this);
+    public final GestaltAbilityHelper abilityHelper = new GestaltAbilityHelper(this);
+    public final GestaltDamageHelper damageHelper = new GestaltDamageHelper(this);
 
 
-    // Gestalt Throw detection
-    private boolean ownerWasOnGround = true;
-    private boolean ownerWasSneakingOnGround = false;
 
     // === Combat state ===
     protected LivingEntity currentTarget;
     protected int attackCooldownTicks = 0; // simple per-stand cooldown
     
     // Smooth movement state
-    private static final double SMOOTH_FACTOR = 0.2; // How much to move towards target each tick (0.0 to 1.0)
+    private static final double SMOOTH_FACTOR = 0.1; // How much to move towards target each tick (0.0 to 1.0)
 
     public GestaltBase(EntityType<? extends MobEntity> type, World world) {
         super(type, world);
@@ -64,8 +63,8 @@ public class GestaltBase extends MobEntity {
     public static DefaultAttributeContainer.Builder createBaseStandAttributes() {
         return MobEntity.createMobAttributes()
                 .add(EntityAttributes.GENERIC_MAX_HEALTH, 20.0)
-                .add(EntityAttributes.GENERIC_MOVEMENT_SPEED, 0.0)
-                .add(EntityAttributes.GENERIC_FLYING_SPEED, 30);
+                .add(EntityAttributes.GENERIC_MOVEMENT_SPEED, 20.0)
+                .add(EntityAttributes.GENERIC_FLYING_SPEED, 20.0);
     }
 
     // ===== Owner handling =====
@@ -169,6 +168,7 @@ public class GestaltBase extends MobEntity {
         super.tick();
 
         this.animationHelper.updateAnimationStates();
+        this.abilityHelper.updateAbilities();
         this.setNoGravity(true);
         this.noClip = true;
         this.velocityModified = true;
@@ -193,22 +193,6 @@ public class GestaltBase extends MobEntity {
                 return;
             }
 
-            IGestaltPlayer gestaltPlayer = (IGestaltPlayer) owner;
-
-            if (gestaltPlayer.gestaltresonance$isLedgeGrabbing()) {
-                owner.setVelocity(Vec3d.ZERO);
-                owner.velocityModified = true;
-                owner.fallDistance = 0;
-                owner.setNoGravity(true);
-            } else {
-                owner.setNoGravity(false);
-            }
-
-            // Blocking logic for Guard Mode
-            if (gestaltPlayer.gestaltresonance$isGuarding()) {
-                blockProjectilesAndEntities();
-            }
-
             updateOwnerFollowAndCombat();
             
             // Sync target to client
@@ -222,22 +206,7 @@ public class GestaltBase extends MobEntity {
             if (this.dataTracker.get(IS_ATTACKING) != isAttacking) {
                 this.dataTracker.set(IS_ATTACKING, isAttacking);
             }
-
-            // Sync throw state to client
-            boolean isThrowing = gestaltPlayer.gestaltresonance$isGestaltThrowActive();
-            if (this.dataTracker.get(IS_THROWING) != isThrowing) {
-                this.dataTracker.set(IS_THROWING, isThrowing);
-            }
         } else {
-            // Client-side: update IS_THROWING from local owner state for zero-latency animation
-            if (owner != null && owner.isAlive()) {
-                IGestaltPlayer gestaltPlayer = (IGestaltPlayer) owner;
-                boolean isThrowing = gestaltPlayer.gestaltresonance$isGestaltThrowActive();
-                if (this.dataTracker.get(IS_THROWING) != isThrowing) {
-                    this.dataTracker.set(IS_THROWING, isThrowing);
-                }
-            }
-
             // Client-side: sync target and attack state from data tracker
             int targetId = this.dataTracker.get(TARGET_ID);
             boolean isAttacking = this.dataTracker.get(IS_ATTACKING);
@@ -273,47 +242,6 @@ public class GestaltBase extends MobEntity {
         }
     }
 
-    private void blockProjectilesAndEntities() {
-        if (owner == null) return;
-
-        // Block entities and projectiles in a 180-degree area in front of the player
-        // The Gestalt is already positioned 0.8 blocks in front of the player.
-        // We expand its reach to push entities back.
-        
-        double radius = 1.5;
-        var entities = this.getWorld().getOtherEntities(this, this.getBoundingBox().expand(radius));
-        Vec3d playerFacing = owner.getRotationVec(1.0f);
-        Vec3d playerFacingFlat = new Vec3d(playerFacing.x, 0, playerFacing.z).normalize();
-
-        for (var entity : entities) {
-            if (entity == owner) continue;
-            
-            Vec3d toEntity = entity.getPos().subtract(owner.getPos());
-            Vec3d toEntityFlat = new Vec3d(toEntity.x, 0, toEntity.z).normalize();
-            
-            double dot = toEntityFlat.dotProduct(playerFacingFlat);
-            
-            // 180 degrees check (dot > 0 means in front)
-            if (dot > 0) {
-                if (entity instanceof net.minecraft.entity.projectile.ProjectileEntity projectile) {
-                    // Deflect or destroy projectile
-                    // We only want to deflect it if it's moving TOWARDS the player
-                    Vec3d projVel = projectile.getVelocity();
-                    if (projVel.dotProduct(playerFacingFlat) < 0) {
-                        projectile.setVelocity(projVel.multiply(-0.5));
-                        projectile.velocityModified = true;
-                    }
-                } else if (entity instanceof LivingEntity) {
-                    // Push entities back if they are too close
-                    if (toEntity.lengthSquared() < 2.25) { // 1.5 blocks
-                        Vec3d pushDir = toEntityFlat.multiply(0.3);
-                        entity.addVelocity(pushDir.x, 0.1, pushDir.z);
-                        entity.velocityModified = true;
-                    }
-                }
-            }
-        }
-    }
 
 
     private void updateOwnerFollowAndCombat() {
@@ -577,60 +505,7 @@ public class GestaltBase extends MobEntity {
 
     @Override
     public boolean damage(net.minecraft.entity.damage.DamageSource source, float amount) {
-        if (this.getWorld().isClient) return false;
-
-        // Gestalten are invincible while attacking
-        if (this.dataTracker.get(IS_ATTACKING)) {
-            return false;
-        }
-
-        // Gestalten do not take suffocation damage
-        if (source.isOf(net.minecraft.entity.damage.DamageTypes.IN_WALL)) {
-            return false;
-        }
-
-        if (owner == null || !owner.isAlive()) {
-            return false;
-        }
-
-        // Apply guard reduction
-        float actualAmount = amount;
-        IGestaltPlayer gestaltPlayer = (IGestaltPlayer) owner;
-        if (gestaltPlayer.gestaltresonance$isGuarding()) {
-            Vec3d sourcePos = source.getPosition();
-            if (sourcePos != null) {
-                Vec3d playerPos = owner.getPos();
-                Vec3d dirToSource = sourcePos.subtract(playerPos).normalize();
-                Vec3d playerFacing = owner.getRotationVec(1.0f);
-                double dot = dirToSource.dotProduct(new Vec3d(playerFacing.x, 0, playerFacing.z).normalize());
-                if (dot > 0) {
-                    actualAmount *= 0.2f; // 80% reduction
-                }
-            }
-        }
-
-        // New system: reduce damage by the factor and apply directly to owner health
-        float transferred = actualAmount * getDamageReductionFactor();
-
-        // Check for owner invulnerability
-        if (owner.isInvulnerableTo(source)) {
-            return false;
-        }
-
-        // Apply health adjustment without hit feedback
-        gestaltPlayer.gestaltresonance$setRedirectionActive(true);
-        try {
-            float newHealth = owner.getHealth() - transferred;
-            owner.setHealth(Math.max(0, newHealth));
-
-            if (newHealth <= 0) {
-                owner.onDeath(source);
-            }
-        } finally {
-            gestaltPlayer.gestaltresonance$setRedirectionActive(false);
-        }
-
-        return true;
+        return this.damageHelper.handleDamage(source, amount);
     }
 
     @Override
@@ -641,14 +516,7 @@ public class GestaltBase extends MobEntity {
 
     @Override
     public boolean isInvulnerableTo(net.minecraft.entity.damage.DamageSource source) {
-        // Gestalten don't take direct damage anymore, but we need to return true
-        // to some things to let 'damage' method handle redirection.
-        // Actually, MobEntity.damage checks isInvulnerableTo.
-        // If we want to handle it in 'damage', we should return false for things we want to redirect.
-        
-        if (source.isOf(net.minecraft.entity.damage.DamageTypes.IN_WALL)) return true;
-
+        if (this.damageHelper.isInvulnerableTo(source)) return true;
         return super.isInvulnerableTo(source);
     }
 }
-

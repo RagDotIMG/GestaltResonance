@@ -102,7 +102,7 @@ public class AmenBreakAnimation {
 		))
 		.build();
 
-	public static final Animation Gaurd = Animation.Builder.create(0.1F).looping()
+	public static final Animation Guard = Animation.Builder.create(0.1F).looping()
 		.build();
 
 	public static final Animation grab = Animation.Builder.create(0.1F).looping()
