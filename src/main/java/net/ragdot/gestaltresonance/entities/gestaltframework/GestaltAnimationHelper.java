@@ -11,12 +11,18 @@ public class GestaltAnimationHelper {
     public final AnimationState grabAnimationState = new AnimationState();
     public final AnimationState windUpAnimationState = new AnimationState();
     public final AnimationState punchAnimationState = new AnimationState();
-    private int idleAnimationTimeout = 0;
-
     private final GestaltBase gestalt;
 
     public GestaltAnimationHelper(GestaltBase gestalt) {
         this.gestalt = gestalt;
+    }
+
+    public void stopAllActionAnimations() {
+        this.guardAnimationState.stop();
+        this.throwAnimationState.stop();
+        this.grabAnimationState.stop();
+        this.windUpAnimationState.stop();
+        this.punchAnimationState.stop();
     }
 
     public void updateAnimationStates() {
@@ -69,10 +75,18 @@ public class GestaltAnimationHelper {
                 this.punchAnimationState.stop();
             }
 
+            // Fallback: If we are close to the owner and not in an active action state,
+            // force all non-idle animations to stop.
+            if (owner != null && !anyOtherAnimationRunning) {
+                double distSq = gestalt.squaredDistanceTo(owner);
+                if (distSq < 4.0) { // Within 2 blocks
+                    this.stopAllActionAnimations();
+                }
+            }
+
             // Idle animation handling
             if (anyOtherAnimationRunning) {
                 this.idleAnimationState.stop();
-                this.idleAnimationTimeout = 0;
             } else {
                 this.idleAnimationState.startIfNotRunning(gestalt.age);
             }

@@ -35,6 +35,11 @@ public class AmenBreak extends GestaltBase {
         return 0.1;
     }
 
+    @Override
+    public net.minecraft.util.Identifier getGestaltId() {
+        return net.minecraft.util.Identifier.of("gestaltresonance", "amen_break");
+    }
+
     // Attributes specific to this stand (can override base)
     public static DefaultAttributeContainer.Builder createAttributes() {
         return GestaltBase.createBaseStandAttributes();

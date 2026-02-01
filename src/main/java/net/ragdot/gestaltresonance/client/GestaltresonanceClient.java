@@ -25,6 +25,8 @@ import net.minecraft.client.util.InputUtil;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.Identifier;
+import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
+import net.ragdot.gestaltresonance.client.gui.StaminaHudRenderer;
 import org.lwjgl.glfw.GLFW;
 import net.ragdot.gestaltresonance.Gestaltresonance;
 import net.ragdot.gestaltresonance.client.model.ScorchedUtopiaModel;
@@ -171,30 +173,7 @@ public class GestaltresonanceClient implements ClientModInitializer {
                                 // Valid ledge!
                                 gestaltPlayer.gestaltresonance$setLedgeGrabbing(true);
                                 gestaltPlayer.gestaltresonance$setLedgeGrabPos(pos);
-
-                                // Calculate the fixed Gestalt position locally for immediate client-side feedback
-                                net.minecraft.util.math.Vec3d targetBlockCenter = new net.minecraft.util.math.Vec3d(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5);
-                                // Predict pull target (1.5 blocks from the side)
-                                net.minecraft.util.math.Vec3d sideVec = net.minecraft.util.math.Vec3d.of(side.getVector());
-                                net.minecraft.util.math.Vec3d predictedPullTarget = new net.minecraft.util.math.Vec3d(
-                                    targetBlockCenter.x + sideVec.x * 1.5,
-                                    pos.getY() - 0.6,
-                                    targetBlockCenter.z + sideVec.z * 1.5
-                                );
-
-                                // Position directly in front of the player facing straight ahead
-                                float targetYaw = client.player.getYaw();
-                                double rad = Math.toRadians(targetYaw);
-                                double frontX = -Math.sin(rad);
-                                double frontZ = Math.cos(rad);
-
-                                net.minecraft.util.math.Vec3d gestaltPos = new net.minecraft.util.math.Vec3d(
-                                    predictedPullTarget.x + frontX * 0.5,
-                                    predictedPullTarget.y + client.player.getEyeHeight(client.player.getPose()) - 1.1,
-                                    predictedPullTarget.z + frontZ * 0.5
-                                );
-                                gestaltPlayer.gestaltresonance$setLedgeGrabGestaltPos(gestaltPos);
-                                gestaltPlayer.gestaltresonance$setLedgeGrabGestaltYaw(targetYaw);
+                                gestaltPlayer.gestaltresonance$setLedgeGrabSide(side);
 
                                 ClientPlayNetworking.send(new ToggleLedgeGrabPayload(true, java.util.Optional.of(pos), java.util.Optional.of(side)));
                             }
@@ -203,7 +182,6 @@ public class GestaltresonanceClient implements ClientModInitializer {
                 } else if (isLedgeGrabbing && !isSpacePressed) {
                     // Release ledge grab
                     gestaltPlayer.gestaltresonance$setLedgeGrabbing(false);
-                    gestaltPlayer.gestaltresonance$setLedgeGrabGestaltPos(null);
                     gestaltPlayer.gestaltresonance$setLedgeGrabCooldown(20);
                     ClientPlayNetworking.send(new ToggleLedgeGrabPayload(false, java.util.Optional.empty(), java.util.Optional.empty()));
                 }
@@ -243,6 +221,8 @@ public class GestaltresonanceClient implements ClientModInitializer {
                 Gestaltresonance.AMEN_BREAK,
                 AmenBreakRenderer::new
         );
+
+        HudRenderCallback.EVENT.register(new StaminaHudRenderer());
     }
 
     // ===== Generic renderer for base Gestalten (Biped model) =====

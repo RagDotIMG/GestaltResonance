@@ -19,6 +19,57 @@ import net.minecraft.sound.SoundEvent;
 @Mixin(PlayerEntity.class)
 public abstract class PlayerEntityMixin {
 
+    @Inject(method = "writeCustomDataToNbt", at = @At("TAIL"))
+    private void gestaltresonance$writeGestaltData(net.minecraft.nbt.NbtCompound nbt, CallbackInfo ci) {
+        IGestaltPlayer gp = (IGestaltPlayer) this;
+        net.minecraft.nbt.NbtCompound gestaltData = new net.minecraft.nbt.NbtCompound();
+        
+        // We need a list of all known Gestalt IDs to save them.
+        // For now, we can use the ones we know or just iterate over what's in the maps.
+        // Actually, since the maps are private and unique to the other mixin, 
+        // we can't easily iterate them here without more trickery.
+        // Better: let's use the known IDs: scorched_utopia, amen_break, and the base gestalt.
+        net.minecraft.util.Identifier[] ids = {
+            net.minecraft.util.Identifier.of("gestaltresonance", "gestalt"),
+            net.minecraft.util.Identifier.of("gestaltresonance", "scorched_utopia"),
+            net.minecraft.util.Identifier.of("gestaltresonance", "amen_break")
+        };
+
+        for (net.minecraft.util.Identifier id : ids) {
+            net.minecraft.nbt.NbtCompound singleGestalt = new net.minecraft.nbt.NbtCompound();
+            singleGestalt.putFloat("Stamina", gp.gestaltresonance$getGestaltStamina(id));
+            singleGestalt.putInt("Exp", gp.gestaltresonance$getGestaltExp(id));
+            singleGestalt.putInt("Lvl", gp.gestaltresonance$getGestaltLvl(id));
+            gestaltData.put(id.toString(), singleGestalt);
+        }
+        nbt.put("GestaltResonanceData", gestaltData);
+    }
+
+    @Inject(method = "readCustomDataFromNbt", at = @At("TAIL"))
+    private void gestaltresonance$readGestaltData(net.minecraft.nbt.NbtCompound nbt, CallbackInfo ci) {
+        IGestaltPlayer gp = (IGestaltPlayer) this;
+        if (nbt.contains("GestaltResonanceData")) {
+            net.minecraft.nbt.NbtCompound gestaltData = nbt.getCompound("GestaltResonanceData");
+            for (String key : gestaltData.getKeys()) {
+                try {
+                    net.minecraft.util.Identifier id = net.minecraft.util.Identifier.of(key);
+                    net.minecraft.nbt.NbtCompound singleGestalt = gestaltData.getCompound(key);
+                    if (singleGestalt.contains("Stamina")) gp.gestaltresonance$setGestaltStamina(id, singleGestalt.getFloat("Stamina"));
+                    if (singleGestalt.contains("Exp")) gp.gestaltresonance$setGestaltExp(id, singleGestalt.getInt("Exp"));
+                    if (singleGestalt.contains("Lvl")) gp.gestaltresonance$setGestaltLvl(id, singleGestalt.getInt("Lvl"));
+                } catch (Exception ignored) {}
+            }
+        } else {
+            // Legacy loading for backward compatibility if needed, 
+            // but since we just added these in previous tasks, maybe not strictly necessary.
+            // Let's keep it for one version transition.
+            net.minecraft.util.Identifier defaultId = net.minecraft.util.Identifier.of("gestaltresonance", "gestalt");
+            if (nbt.contains("GestaltStamina")) gp.gestaltresonance$setGestaltStamina(defaultId, nbt.getFloat("GestaltStamina"));
+            if (nbt.contains("GestaltExp")) gp.gestaltresonance$setGestaltExp(defaultId, nbt.getInt("GestaltExp"));
+            if (nbt.contains("GestaltLvl")) gp.gestaltresonance$setGestaltLvl(defaultId, nbt.getInt("GestaltLvl"));
+        }
+    }
+
     @Inject(method = "playSound(Lnet/minecraft/sound/SoundEvent;FF)V", at = @At("HEAD"), cancellable = true)
     private void gestaltresonance$cancelSoundDuringRedirection(SoundEvent sound, float volume, float pitch, CallbackInfo ci) {
         if (((IGestaltPlayer) this).gestaltresonance$isRedirectionActive()) {
@@ -47,15 +98,26 @@ public abstract class PlayerEntityMixin {
         IGestaltPlayer gestaltPlayer = (IGestaltPlayer) player;
 
         if (gestaltPlayer.gestaltresonance$isGuarding()) {
-            Vec3d sourcePos = source.getPosition();
-            if (sourcePos != null) {
-                Vec3d playerPos = player.getPos();
-                Vec3d dirToSource = sourcePos.subtract(playerPos).normalize();
-                Vec3d playerFacing = player.getRotationVec(1.0f);
+            // Find active gestalt to check stamina
+            GestaltBase activeGestalt = player.getWorld().getEntitiesByClass(
+                    GestaltBase.class,
+                    player.getBoundingBox().expand(4.0),
+                    stand -> player.getUuid().equals(stand.getOwnerUuid())
+            ).stream().findFirst().orElse(null);
 
-                double dot = dirToSource.dotProduct(new Vec3d(playerFacing.x, 0, playerFacing.z).normalize());
-                if (dot > 0) {
-                    return amount * 0.2f; // 80% reduction
+            if (activeGestalt != null) {
+                Vec3d sourcePos = source.getPosition();
+                if (sourcePos != null) {
+                    Vec3d playerPos = player.getPos();
+                    Vec3d dirToSource = sourcePos.subtract(playerPos).normalize();
+                    Vec3d playerFacing = player.getRotationVec(1.0f);
+
+                    double dot = dirToSource.dotProduct(new Vec3d(playerFacing.x, 0, playerFacing.z).normalize());
+                    if (dot > 0) {
+                        activeGestalt.setStamina(activeGestalt.getStamina() - 3.0f);
+                        float reduction = activeGestalt.getGuardReduction();
+                        return amount * (1.0f - reduction);
+                    }
                 }
             }
         }
@@ -106,6 +168,6 @@ public abstract class PlayerEntityMixin {
         }
 
         // Set 1 second cooldown for ledge grab after jumping
-        ((IGestaltPlayer) player).gestaltresonance$setLedgeGrabCooldown(20);
+        ((IGestaltPlayer) player).gestaltresonance$setLedgeGrabCooldown(10);
     }
 }

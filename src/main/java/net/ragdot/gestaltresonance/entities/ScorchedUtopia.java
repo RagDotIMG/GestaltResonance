@@ -15,10 +15,13 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.ragdot.gestaltresonance.effect.ModStatusEffects;
 
+import net.ragdot.gestaltresonance.util.IGestaltPlayer;
 import java.util.List;
 
 public class ScorchedUtopia extends GestaltBase {
     protected static final TrackedData<Boolean> IS_AURA_ACTIVE = DataTracker.registerData(ScorchedUtopia.class, TrackedDataHandlerRegistry.BOOLEAN);
+
+    private int auraActiveTicks = 0;
 
     public ScorchedUtopia(EntityType<? extends ScorchedUtopia> type, World world) {
         super(type, world);
@@ -36,11 +39,38 @@ public class ScorchedUtopia extends GestaltBase {
 
         if (this.isAuraActive()) {
             if (!this.getWorld().isClient) {
-                if (this.age % 20 == 0) {
-                    applyRottingAura();
+                IGestaltPlayer gp = (IGestaltPlayer) getOwner();
+                if (gp != null && gp.gestaltresonance$isGuarding()) {
+                    // Don't apply aura while guarding
+                    return;
+                }
+
+                float currentStamina = this.getStamina();
+                if (currentStamina > 0) {
+                    // Drain 2 stamina per second -> 0.1 per tick
+                    this.setStamina(currentStamina - 0.1f);
+
+                    // Award 1 EXP for every 5 seconds (100 ticks) active
+                    auraActiveTicks++;
+                    if (auraActiveTicks >= 100) {
+                        this.setExp(this.getExp() + 1);
+                        auraActiveTicks = 0;
+                    }
+
+                    if (this.age % 20 == 0) {
+                        applyRottingAura();
+                    }
+                } else {
+                    // Auto-disable if out of stamina
+                    this.setAuraActive(false);
+                    auraActiveTicks = 0;
                 }
             } else {
                 spawnAuraParticles();
+            }
+        } else {
+            if (!this.getWorld().isClient) {
+                auraActiveTicks = 0;
             }
         }
     }
@@ -83,6 +113,11 @@ public class ScorchedUtopia extends GestaltBase {
         this.dataTracker.set(IS_AURA_ACTIVE, active);
     }
 
+    @Override
+    public net.minecraft.util.Identifier getGestaltId() {
+        return net.minecraft.util.Identifier.of("gestaltresonance", "scorched_utopia");
+    }
+
     private void applyRottingAura() {
         double range = 5.0;
         List<HostileEntity> hostiles = this.getWorld().getEntitiesByClass(
@@ -92,7 +127,8 @@ public class ScorchedUtopia extends GestaltBase {
         );
 
         for (HostileEntity hostile : hostiles) {
-            hostile.addStatusEffect(new StatusEffectInstance(ModStatusEffects.ROTTING, 100, 0));
+            int amplifier = Math.max(0, this.getLvl() - 1);
+            hostile.addStatusEffect(new StatusEffectInstance(ModStatusEffects.ROTTING, 100, amplifier));
         }
     }
 
@@ -129,6 +165,6 @@ public class ScorchedUtopia extends GestaltBase {
 
     @Override
     protected float getDamageReductionFactor() {
-        return 0.15f; // Scorched Utopia has higher defense (85% reduction vs 70%)
+        return 0.10f; // Scorched Utopia has higher defense (85% reduction vs 70%)
     }
 }

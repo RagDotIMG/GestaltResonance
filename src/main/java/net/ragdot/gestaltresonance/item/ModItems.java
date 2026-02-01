@@ -11,6 +11,10 @@ public class ModItems {
     public static final Item ROTTEN_FEATHER = registerItem("rotten_feather", new RottenFeatherItem(new Item.Settings()));
     public static final Item BLASTED_FEATHER = registerItem("blasted_feather", new BlastedFeatherItem(new Item.Settings()));
     public static final Item ROTTEN_ESSENCE = registerItem("rotten_essence", new Item(new Item.Settings()));
+    public static final Item BLASTED_ESSENCE = registerItem("blasted_essence", new Item(new Item.Settings()));
+    public static final Item INKED_ESSENCE = registerItem("inked_essence", new Item(new Item.Settings()));
+    public static final Item INKED_FEATHER = registerItem("inked_feather", new Item(new Item.Settings()));
+    public static final Item RESONANT_DUST = registerItem("resonant_dust", new Item(new Item.Settings()));
     public static final Item NEATHER_TEAR = registerItem("neather_tear", new NetherTearItem(new Item.Settings()));
 
     private static Item registerItem(String name, Item item) {

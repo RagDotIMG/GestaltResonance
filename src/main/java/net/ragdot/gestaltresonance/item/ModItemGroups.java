@@ -18,6 +18,10 @@ public class ModItemGroups {
                         entries.add(ModItems.ROTTEN_FEATHER);
                         entries.add(ModItems.BLASTED_FEATHER);
                         entries.add(ModItems.ROTTEN_ESSENCE);
+                        entries.add(ModItems.BLASTED_ESSENCE);
+                        entries.add(ModItems.INKED_ESSENCE);
+                        entries.add(ModItems.INKED_FEATHER);
+                        entries.add(ModItems.RESONANT_DUST);
                         entries.add(ModItems.NEATHER_TEAR);
                     }).build());
 

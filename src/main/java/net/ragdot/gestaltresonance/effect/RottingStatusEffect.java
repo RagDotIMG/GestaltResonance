@@ -27,8 +27,9 @@ public class RottingStatusEffect extends StatusEffect {
 
     @Override
     public boolean applyUpdateEffect(LivingEntity entity, int amplifier) {
-        // Deal 1 heart (2 points) of damage
-        entity.damage(entity.getDamageSources().magic(), 2.0f);
+        // Base 2.0 damage + 1.0 per amplifier level
+        float damage = 2.0f + amplifier;
+        entity.damage(entity.getDamageSources().magic(), damage);
         return true;
     }
 

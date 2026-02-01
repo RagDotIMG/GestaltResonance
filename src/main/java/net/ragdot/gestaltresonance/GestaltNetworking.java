@@ -90,23 +90,24 @@ public class GestaltNetworking {
         gestaltPlayer.gestaltresonance$setLedgeGrabbing(grabbing);
         pos.ifPresent(p -> {
             gestaltPlayer.gestaltresonance$setLedgeGrabPos(p);
+            side.ifPresent(gestaltPlayer::gestaltresonance$setLedgeGrabSide);
             if (!wasGrabbing && grabbing) {
                 // When starting a grab, pull the player up and closer to the ledge
                 
-                // We want the player to be 1.5 blocks away from the targeted side of the block horizontally and 0.1 blocks lower than its top
+                // We want the player to be 1.3 blocks away from the targeted side of the block horizontally and 0.1 blocks lower than its top
                 Vec3d targetBlockCenter = new Vec3d(p.getX() + 0.5, p.getY() + 0.5, p.getZ() + 0.5);
                 
                 // If side is provided, use it to determine the exact horizontal position
                 Vec3d pullTarget;
                 if (side.isPresent()) {
                     net.minecraft.util.math.Direction s = side.get();
-                    // s is the face we hit, so we want to be 1.5 blocks away from the center in that direction
+                    // s is the face we hit, so we want to be 1.3 blocks away from the center in that direction
                     // Direction vector points FROM the block center TO the face.
                     Vec3d sideVec = Vec3d.of(s.getVector());
                     pullTarget = new Vec3d(
-                        targetBlockCenter.x + sideVec.x * 1.5,
+                        targetBlockCenter.x + sideVec.x * 1.3,
                         p.getY() - 0.6,
-                        targetBlockCenter.z + sideVec.z * 1.5
+                        targetBlockCenter.z + sideVec.z * 1.3
                     );
                 } else {
                     // Fallback to old logic if side is somehow missing
@@ -116,28 +117,13 @@ public class GestaltNetworking {
                     Vec3d direction = playerPosFlat.subtract(targetBlockCenterFlat).normalize();
                     
                     pullTarget = new Vec3d(
-                        targetBlockCenter.x + direction.x * 1.5,
+                        targetBlockCenter.x + direction.x * 1.3,
                         p.getY() + 0.5, 
-                        targetBlockCenter.z + direction.z * 1.5
+                        targetBlockCenter.z + direction.z * 1.3
                     );
                 }
                 
                 player.teleport(pullTarget.x, pullTarget.y, pullTarget.z, false);
-                
-                // Calculate and store the fixed Gestalt position during ledge grab
-                // Position directly in front of the player facing straight ahead
-                float targetYaw = player.getYaw();
-                double rad = Math.toRadians(targetYaw);
-                double frontX = -Math.sin(rad);
-                double frontZ = Math.cos(rad);
-                
-                Vec3d gestaltPos = new Vec3d(
-                    pullTarget.x + frontX * 0.5,
-                    pullTarget.y + player.getEyeHeight(player.getPose()) - 1.1,
-                    pullTarget.z + frontZ * 0.5
-                );
-                gestaltPlayer.gestaltresonance$setLedgeGrabGestaltPos(gestaltPos);
-                gestaltPlayer.gestaltresonance$setLedgeGrabGestaltYaw(targetYaw);
                 
                 // Immediately update client with the new position to avoid local freezing before sync
                 player.networkHandler.requestTeleport(pullTarget.x, pullTarget.y, pullTarget.z, player.getYaw(), player.getPitch());
@@ -153,7 +139,6 @@ public class GestaltNetworking {
         if (wasGrabbing && !grabbing) {
             // Player released space, apply boost
             player.setNoGravity(false);
-            gestaltPlayer.gestaltresonance$setLedgeGrabGestaltPos(null);
             
             // Momentum should be 2 blocks high and 1 block towards the target block
             // Vertical velocity for 2 blocks height: sqrt(2 * gravity * height)
@@ -231,6 +216,14 @@ public class GestaltNetworking {
 
         AmenBreak stand = new AmenBreak(Gestaltresonance.AMEN_BREAK, world);
         stand.setOwner(player);
+
+        // Load persisted values from player
+        IGestaltPlayer gp = (IGestaltPlayer) player;
+        net.minecraft.util.Identifier id = stand.getGestaltId();
+        stand.setStamina(gp.gestaltresonance$getGestaltStamina(id));
+        stand.setExp(gp.gestaltresonance$getGestaltExp(id));
+        stand.setLvl(gp.gestaltresonance$getGestaltLvl(id));
+
         stand.refreshPositionAndAngles(spawnX, spawnY, spawnZ, yaw, 0.0f);
         world.spawnEntity(stand);
     }
@@ -270,6 +263,14 @@ public class GestaltNetworking {
 
         ScorchedUtopia stand = new ScorchedUtopia(Gestaltresonance.SCORCHED_UTOPIA, world);
         stand.setOwner(player);
+
+        // Load persisted values from player
+        IGestaltPlayer gp = (IGestaltPlayer) player;
+        net.minecraft.util.Identifier id = stand.getGestaltId();
+        stand.setStamina(gp.gestaltresonance$getGestaltStamina(id));
+        stand.setExp(gp.gestaltresonance$getGestaltExp(id));
+        stand.setLvl(gp.gestaltresonance$getGestaltLvl(id));
+
         stand.refreshPositionAndAngles(spawnX, spawnY, spawnZ, yaw, 0.0f);
         world.spawnEntity(stand);
     }

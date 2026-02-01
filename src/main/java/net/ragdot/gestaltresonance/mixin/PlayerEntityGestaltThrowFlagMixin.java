@@ -21,16 +21,22 @@ public class PlayerEntityGestaltThrowFlagMixin implements IGestaltPlayer {
     private net.minecraft.util.math.BlockPos gestaltresonance$ledgeGrabPos = null;
 
     @Unique
-    private net.minecraft.util.math.Vec3d gestaltresonance$ledgeGrabGestaltPos = null;
-
-    @Unique
-    private float gestaltresonance$ledgeGrabGestaltYaw = 0;
+    private net.minecraft.util.math.Direction gestaltresonance$ledgeGrabSide = null;
 
     @Unique
     private int gestaltresonance$ledgeGrabCooldown = 0;
 
     @Unique
     private boolean gestaltresonance$redirectionActive = false;
+
+    @Unique
+    private final java.util.Map<net.minecraft.util.Identifier, Float> gestaltresonance$staminaMap = new java.util.HashMap<>();
+
+    @Unique
+    private final java.util.Map<net.minecraft.util.Identifier, Integer> gestaltresonance$expMap = new java.util.HashMap<>();
+
+    @Unique
+    private final java.util.Map<net.minecraft.util.Identifier, Integer> gestaltresonance$lvlMap = new java.util.HashMap<>();
 
     @Override
     public void gestaltresonance$setGestaltThrowActive(boolean active) {
@@ -73,23 +79,13 @@ public class PlayerEntityGestaltThrowFlagMixin implements IGestaltPlayer {
     }
 
     @Override
-    public void gestaltresonance$setLedgeGrabGestaltPos(net.minecraft.util.math.Vec3d pos) {
-        this.gestaltresonance$ledgeGrabGestaltPos = pos;
+    public void gestaltresonance$setLedgeGrabSide(net.minecraft.util.math.Direction side) {
+        this.gestaltresonance$ledgeGrabSide = side;
     }
 
     @Override
-    public net.minecraft.util.math.Vec3d gestaltresonance$getLedgeGrabGestaltPos() {
-        return this.gestaltresonance$ledgeGrabGestaltPos;
-    }
-
-    @Override
-    public void gestaltresonance$setLedgeGrabGestaltYaw(float yaw) {
-        this.gestaltresonance$ledgeGrabGestaltYaw = yaw;
-    }
-
-    @Override
-    public float gestaltresonance$getLedgeGrabGestaltYaw() {
-        return this.gestaltresonance$ledgeGrabGestaltYaw;
+    public net.minecraft.util.math.Direction gestaltresonance$getLedgeGrabSide() {
+        return this.gestaltresonance$ledgeGrabSide;
     }
 
     @Override
@@ -110,5 +106,42 @@ public class PlayerEntityGestaltThrowFlagMixin implements IGestaltPlayer {
     @Override
     public boolean gestaltresonance$isRedirectionActive() {
         return this.gestaltresonance$redirectionActive;
+    }
+
+    @Override
+    public void gestaltresonance$setGestaltStamina(net.minecraft.util.Identifier id, float stamina) {
+        this.gestaltresonance$staminaMap.put(id, stamina);
+    }
+
+    @Override
+    public float gestaltresonance$getGestaltStamina(net.minecraft.util.Identifier id) {
+        return this.gestaltresonance$staminaMap.getOrDefault(id, 26.0f);
+    }
+
+    @Override
+    public void gestaltresonance$setGestaltExp(net.minecraft.util.Identifier id, int exp) {
+        this.gestaltresonance$expMap.put(id, exp);
+    }
+
+    @Override
+    public int gestaltresonance$getGestaltExp(net.minecraft.util.Identifier id) {
+        return this.gestaltresonance$expMap.getOrDefault(id, 0);
+    }
+
+    @Override
+    public void gestaltresonance$setGestaltLvl(net.minecraft.util.Identifier id, int lvl) {
+        this.gestaltresonance$lvlMap.put(id, lvl);
+    }
+
+    @Override
+    public int gestaltresonance$getGestaltLvl(net.minecraft.util.Identifier id) {
+        return this.gestaltresonance$lvlMap.getOrDefault(id, 1);
+    }
+
+    @Override
+    public void gestaltresonance$resetAllGestaltData() {
+        this.gestaltresonance$staminaMap.clear();
+        this.gestaltresonance$expMap.clear();
+        this.gestaltresonance$lvlMap.clear();
     }
 }

@@ -11,6 +11,12 @@
     },
     "done": true
   },
+  "minecraft:adventure/adventuring_time": {
+    "criteria": {
+      "minecraft:savanna": "2026-01-29 00:57:49 +0100"
+    },
+    "done": false
+  },
   "minecraft:adventure/root": {
     "criteria": {
       "killed_something": "2026-01-29 00:58:17 +0100"
@@ -29,11 +35,17 @@
     },
     "done": true
   },
-  "minecraft:adventure/adventuring_time": {
+  "minecraft:recipes/misc/firework_rocket_simple": {
     "criteria": {
-      "minecraft:savanna": "2026-01-29 00:57:49 +0100"
+      "has_gunpowder": "2026-02-01 07:34:14 +0100"
     },
-    "done": false
+    "done": true
+  },
+  "minecraft:recipes/redstone/tnt": {
+    "criteria": {
+      "has_gunpowder": "2026-02-01 07:34:14 +0100"
+    },
+    "done": true
   },
   "DataVersion": 3955
 }

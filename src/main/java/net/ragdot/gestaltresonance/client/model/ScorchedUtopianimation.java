@@ -112,9 +112,6 @@ public class ScorchedUtopianimation {
 			.build();
 
 	public static final Animation grab = Animation.Builder.create(0.0F)
-			.addBoneAnimation("zombie_model", new Transformation(Transformation.Targets.ROTATE,
-					new Keyframe(0.0F, AnimationHelper.createRotationalVector(0.0F, 70.0F, 0.0F), Transformation.Interpolations.LINEAR)
-			))
 			.addBoneAnimation("head", new Transformation(Transformation.Targets.ROTATE,
 					new Keyframe(0.0F, AnimationHelper.createRotationalVector(22.4755F, -28.8289F, -23.6456F), Transformation.Interpolations.LINEAR)
 			))
@@ -122,22 +119,40 @@ public class ScorchedUtopianimation {
 					new Keyframe(0.0F, AnimationHelper.createTranslationalVector(1.6814F, -0.3996F, 0.1143F), Transformation.Interpolations.LINEAR)
 			))
 			.addBoneAnimation("R_arm", new Transformation(Transformation.Targets.ROTATE,
-					new Keyframe(0.0F, AnimationHelper.createRotationalVector(-0.4826F, 58.0462F, 52.4465F), Transformation.Interpolations.LINEAR)
+					new Keyframe(0.0F, AnimationHelper.createRotationalVector(-48.0646F, 39.6134F, 0.382F), Transformation.Interpolations.LINEAR)
 			))
 			.addBoneAnimation("R_l_arm", new Transformation(Transformation.Targets.ROTATE,
 					new Keyframe(0.0F, AnimationHelper.createRotationalVector(21.5919F, -33.2987F, -51.3036F), Transformation.Interpolations.LINEAR)
 			))
 			.addBoneAnimation("L_arm", new Transformation(Transformation.Targets.ROTATE,
-					new Keyframe(0.0F, AnimationHelper.createRotationalVector(-131.7456F, -21.5985F, 43.7897F), Transformation.Interpolations.LINEAR)
+					new Keyframe(0.0F, AnimationHelper.createRotationalVector(-78.849F, -36.2069F, -31.5249F), Transformation.Interpolations.LINEAR)
+			))
+			.addBoneAnimation("L_arm", new Transformation(Transformation.Targets.TRANSLATE,
+					new Keyframe(0.0F, AnimationHelper.createTranslationalVector(0.0F, 1.0F, 0.0F), Transformation.Interpolations.LINEAR)
 			))
 			.addBoneAnimation("L_l_arm", new Transformation(Transformation.Targets.ROTATE,
-					new Keyframe(0.0F, AnimationHelper.createRotationalVector(-8.2835F, 42.1232F, -27.9535F), Transformation.Interpolations.LINEAR)
+					new Keyframe(0.0F, AnimationHelper.createRotationalVector(-16.0522F, 9.9539F, -10.2829F), Transformation.Interpolations.LINEAR)
 			))
 			.addBoneAnimation("L_l_arm", new Transformation(Transformation.Targets.TRANSLATE,
-					new Keyframe(0.0F, AnimationHelper.createTranslationalVector(0.8224F, -0.0217F, 0.2076F), Transformation.Interpolations.LINEAR)
+					new Keyframe(0.0F, AnimationHelper.createTranslationalVector(0.1269F, 0.0192F, -0.1452F), Transformation.Interpolations.LINEAR)
+			))
+			.addBoneAnimation("body_top", new Transformation(Transformation.Targets.ROTATE,
+					new Keyframe(0.0F, AnimationHelper.createRotationalVector(-9.3422F, 68.1051F, -28.8686F), Transformation.Interpolations.LINEAR)
 			))
 			.addBoneAnimation("R_leg", new Transformation(Transformation.Targets.TRANSLATE,
 					new Keyframe(0.0F, AnimationHelper.createTranslationalVector(-0.0169F, -1.4947F, 0.1253F), Transformation.Interpolations.LINEAR)
+			))
+			.addBoneAnimation("body_mid", new Transformation(Transformation.Targets.ROTATE,
+					new Keyframe(0.0F, AnimationHelper.createRotationalVector(1.6844F, -0.879F, 1.9015F), Transformation.Interpolations.LINEAR)
+			))
+			.addBoneAnimation("body_mid", new Transformation(Transformation.Targets.TRANSLATE,
+					new Keyframe(0.0F, AnimationHelper.createTranslationalVector(-0.0971F, -0.02F, 0.0128F), Transformation.Interpolations.LINEAR)
+			))
+			.addBoneAnimation("body_bot", new Transformation(Transformation.Targets.ROTATE,
+					new Keyframe(0.0F, AnimationHelper.createRotationalVector(-29.1774F, 45.5347F, -22.4163F), Transformation.Interpolations.LINEAR)
+			))
+			.addBoneAnimation("body_bot", new Transformation(Transformation.Targets.TRANSLATE,
+					new Keyframe(0.0F, AnimationHelper.createTranslationalVector(-0.1968F, 0.5355F, 0.4522F), Transformation.Interpolations.LINEAR)
 			))
 			.build();
 

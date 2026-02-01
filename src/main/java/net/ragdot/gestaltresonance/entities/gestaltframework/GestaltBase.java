@@ -29,6 +29,10 @@ public class GestaltBase extends MobEntity {
     protected static final TrackedData<Boolean> IS_THROWING = DataTracker.registerData(GestaltBase.class, TrackedDataHandlerRegistry.BOOLEAN);
     protected static final TrackedData<Boolean> IS_WINDING_UP = DataTracker.registerData(GestaltBase.class, TrackedDataHandlerRegistry.BOOLEAN);
     protected static final TrackedData<Boolean> IS_PUNCHING = DataTracker.registerData(GestaltBase.class, TrackedDataHandlerRegistry.BOOLEAN);
+    protected static final TrackedData<Float> STAMINA = DataTracker.registerData(GestaltBase.class, TrackedDataHandlerRegistry.FLOAT);
+    protected static final TrackedData<Float> GUARD_REDUCTION = DataTracker.registerData(GestaltBase.class, TrackedDataHandlerRegistry.FLOAT);
+    protected static final TrackedData<Integer> EXP = DataTracker.registerData(GestaltBase.class, TrackedDataHandlerRegistry.INTEGER);
+    protected static final TrackedData<Integer> LVL = DataTracker.registerData(GestaltBase.class, TrackedDataHandlerRegistry.INTEGER);
 
     protected PlayerEntity owner;
     protected UUID ownerUuid;
@@ -44,6 +48,8 @@ public class GestaltBase extends MobEntity {
     protected int attackCooldownTicks = 0; // simple per-stand cooldown
     protected int punchingTicks = 0;
     protected int windUpTicks = 0;
+    protected int guardingTicks = 0;
+    protected int staminaRegenDelay = 0;
     
     // Smooth movement state
     private static final double SMOOTH_FACTOR = 0.1; // How much to move towards target each tick (0.0 to 1.0)
@@ -63,6 +69,10 @@ public class GestaltBase extends MobEntity {
         builder.add(IS_THROWING, false);
         builder.add(IS_WINDING_UP, false);
         builder.add(IS_PUNCHING, false);
+        builder.add(STAMINA, 26.0f);
+        builder.add(GUARD_REDUCTION, 0.0f);
+        builder.add(EXP, 0);
+        builder.add(LVL, 1);
     }
 
     // ===== Shared attributes =====
@@ -95,6 +105,109 @@ public class GestaltBase extends MobEntity {
             this.dataTracker.get(OWNER_UUID).ifPresent(uuid -> this.ownerUuid = uuid);
         }
         return ownerUuid;
+    }
+
+    public float getStamina() {
+        return this.dataTracker.get(STAMINA);
+    }
+
+    public void setStamina(float stamina) {
+        float oldStamina = getStamina();
+        float newStamina = Math.max(0, Math.min(stamina, getMaxStamina()));
+        this.dataTracker.set(STAMINA, newStamina);
+
+        if (newStamina <= 0 && oldStamina > 0) {
+            this.staminaRegenDelay = 80; // 4 seconds delay when hitting 0
+        }
+
+        PlayerEntity owner = getOwner();
+        if (owner != null && !this.getWorld().isClient) {
+            IGestaltPlayer gp = (IGestaltPlayer) owner;
+            gp.gestaltresonance$setGestaltStamina(this.getGestaltId(), newStamina);
+        }
+    }
+
+    public float getMaxStamina() {
+        return 26.0f;
+    }
+
+    public float getGuardReduction() {
+        return this.dataTracker.get(GUARD_REDUCTION);
+    }
+
+    public int getExp() {
+        return this.dataTracker.get(EXP);
+    }
+
+    public void setExp(int exp) {
+        int maxExp = getMaxExp();
+        if (exp >= maxExp) {
+            if (getLvl() < 5) {
+                this.dataTracker.set(EXP, 0);
+                setLvl(getLvl() + 1);
+            } else {
+                this.dataTracker.set(EXP, maxExp); // Keep it full if max level reached
+            }
+        } else {
+            this.dataTracker.set(EXP, exp);
+        }
+        
+        PlayerEntity owner = getOwner();
+        if (owner != null && !this.getWorld().isClient) {
+            ((IGestaltPlayer) owner).gestaltresonance$setGestaltExp(this.getGestaltId(), this.dataTracker.get(EXP));
+        }
+    }
+
+    public int getLvl() {
+        return this.dataTracker.get(LVL);
+    }
+
+    public void setLvl(int lvl) {
+        int cappedLvl = Math.min(lvl, 5);
+        this.dataTracker.set(LVL, cappedLvl);
+        PlayerEntity owner = getOwner();
+        if (owner != null && !this.getWorld().isClient) {
+            ((IGestaltPlayer) owner).gestaltresonance$setGestaltLvl(this.getGestaltId(), cappedLvl);
+        }
+    }
+
+    public net.minecraft.util.Identifier getGestaltId() {
+        return net.minecraft.util.Identifier.of("gestaltresonance", "gestalt");
+    }
+
+    public int getMaxExp() {
+        return 117;
+    }
+
+    protected void updateStamina() {
+        if (staminaRegenDelay > 0) {
+            staminaRegenDelay--;
+            return;
+        }
+
+        if (owner != null) {
+            IGestaltPlayer gp = (IGestaltPlayer) owner;
+            if (gp.gestaltresonance$isGuarding()) {
+                guardingTicks++;
+                // Update guard reduction directly corresponding to stamina percentage
+                this.dataTracker.set(GUARD_REDUCTION, getStamina() / getMaxStamina());
+                return; // Don't regenerate while guarding
+            }
+        }
+        guardingTicks = 0;
+        if (this.dataTracker.get(GUARD_REDUCTION) != 0.0f) {
+            this.dataTracker.set(GUARD_REDUCTION, 0.0f);
+        }
+
+        float current = getStamina();
+        float max = getMaxStamina();
+        if (current < max) {
+            setStamina(current + getStaminaRegenRate());
+        }
+    }
+
+    protected float getStaminaRegenRate() {
+        return 0.05f; // Refills 1 unit every 20 ticks (1 second)
     }
 
 
@@ -135,6 +248,7 @@ public class GestaltBase extends MobEntity {
     @Override
     public void writeCustomDataToNbt(NbtCompound nbt) {
         super.writeCustomDataToNbt(nbt);
+        nbt.putInt("StaminaRegenDelay", this.staminaRegenDelay);
         if (this.ownerUuid != null) {
             nbt.putUuid("OwnerUUID", this.ownerUuid);
         }
@@ -143,6 +257,9 @@ public class GestaltBase extends MobEntity {
     @Override
     public void readCustomDataFromNbt(NbtCompound nbt) {
         super.readCustomDataFromNbt(nbt);
+        if (nbt.contains("StaminaRegenDelay")) {
+            this.staminaRegenDelay = nbt.getInt("StaminaRegenDelay");
+        }
         if (nbt.containsUuid("OwnerUUID")) {
             this.ownerUuid = nbt.getUuid("OwnerUUID");
             this.dataTracker.set(OWNER_UUID, Optional.of(this.ownerUuid));
@@ -198,6 +315,7 @@ public class GestaltBase extends MobEntity {
             }
 
             updateOwnerFollowAndCombat();
+            updateStamina();
             
             // Sync target to client
             int targetId = currentTarget != null ? currentTarget.getId() : -1;
@@ -254,14 +372,12 @@ public class GestaltBase extends MobEntity {
         if (gestaltPlayer.gestaltresonance$isLedgeGrabbing() || gestaltPlayer.gestaltresonance$isGuarding()) {
             updatePositionToOwner();
             if (!this.getWorld().isClient) {
-                if (this.dataTracker.get(IS_WINDING_UP)) {
-                    this.dataTracker.set(IS_WINDING_UP, false);
-                    this.windUpTicks = 0;
-                }
-                if (this.dataTracker.get(IS_PUNCHING)) {
-                    this.dataTracker.set(IS_PUNCHING, false);
-                    this.punchingTicks = 0;
-                }
+                this.dataTracker.set(IS_WINDING_UP, false);
+                this.windUpTicks = 0;
+                this.dataTracker.set(IS_PUNCHING, false);
+                this.punchingTicks = 0;
+                this.currentTarget = null;
+                this.dataTracker.set(TARGET_ID, -1);
             }
             return;
         }
@@ -273,9 +389,11 @@ public class GestaltBase extends MobEntity {
         if (currentTarget == null || !currentTarget.isAlive()) {
             currentTarget = null;
             updatePositionToOwner();
-            if (this.dataTracker.get(IS_WINDING_UP)) {
+            if (!this.getWorld().isClient) {
                 this.dataTracker.set(IS_WINDING_UP, false);
                 this.windUpTicks = 0;
+                this.dataTracker.set(IS_PUNCHING, false);
+                this.punchingTicks = 0;
             }
             return;
         }
@@ -287,9 +405,11 @@ public class GestaltBase extends MobEntity {
         if (distSqToOwner > maxRange * maxRange && !this.dataTracker.get(IS_PUNCHING)) {
             currentTarget = null;
             updatePositionToOwner();
-            if (this.dataTracker.get(IS_WINDING_UP)) {
+            if (!this.getWorld().isClient) {
                 this.dataTracker.set(IS_WINDING_UP, false);
                 this.windUpTicks = 0;
+                this.dataTracker.set(IS_PUNCHING, false);
+                this.punchingTicks = 0;
             }
             return;
         }
@@ -483,6 +603,42 @@ public class GestaltBase extends MobEntity {
         }
     }
 
+    // Ledge Grab positioning
+    public static Vec3d getLedgeGrabPosition(PlayerEntity player, net.minecraft.util.math.BlockPos ledgePos) {
+        if (ledgePos == null) {
+
+            double rad = Math.toRadians(player.getYaw());
+            double backX = -Math.sin(rad);
+            double backZ = Math.cos(rad);
+            double backOffset = 0.0;
+            return new Vec3d(
+                    player.getX() + backOffset * backX,
+                    player.getY() + player.getEyeHeight(player.getPose()) - 0.0,
+                    player.getZ() + backOffset * backZ
+            );
+        }
+
+        Vec3d targetBlockCenter = new Vec3d(ledgePos.getX() + 0.3, ledgePos.getY() + 0.6, ledgePos.getZ() + 0.5);
+        Vec3d playerPos = player.getPos();
+        
+        // Direction from player to block
+        Vec3d toBlock = targetBlockCenter.subtract(playerPos).normalize();
+        
+        // Position it 2.0 blocks away from the player in the direction of the block
+        // And 2.6 blocks lower than eye height
+        return new Vec3d(
+                player.getX() + toBlock.x * 1.9,
+                player.getY() + player.getEyeHeight(player.getPose()) - 2.4,
+                player.getZ() + toBlock.z * - 0.5
+        );
+    }
+
+    public static float getLedgeGrabYaw(net.minecraft.util.math.BlockPos ledgePos, net.minecraft.util.math.Direction ledgeSide) {
+        if (ledgeSide != null) {
+            return ledgeSide.getOpposite().asRotation();
+        }
+        return 0; // Should ideally not happen if ledgeSide is provided
+    }
 
     // ===== Following behavior (can be overridden per stand) =====
     protected void updatePositionToOwner() {
@@ -515,25 +671,13 @@ public class GestaltBase extends MobEntity {
         }
 
         if (isLedgeGrabbing) {
-            Vec3d fixedPos = gp.gestaltresonance$getLedgeGrabGestaltPos();
-            float fixedYaw = gp.gestaltresonance$getLedgeGrabGestaltYaw();
-            if (fixedPos != null) {
-                applySmoothPosition(fixedPos.x, fixedPos.y, fixedPos.z, fixedYaw, false);
-                return;
-            }
-            
-            // Fallback if fixedPos is not yet synced or available
-            // Position directly in front of the player facing straight ahead
-            double frontOffset = 0.5;
-            double rad = Math.toRadians(yaw);
-            double frontX = -Math.sin(rad);
-            double frontZ = Math.cos(rad);
+            net.minecraft.util.math.BlockPos ledgePos = gp.gestaltresonance$getLedgeGrabPos();
+            net.minecraft.util.math.Direction ledgeSide = gp.gestaltresonance$getLedgeGrabSide();
 
-            double targetX = playerX + frontOffset * frontX;
-            double targetZ = playerZ + frontOffset * frontZ;
-            double targetY = owner.getY() + owner.getEyeHeight(owner.getPose()) - 1.4;
+            Vec3d targetPos = getLedgeGrabPosition(owner, ledgePos);
+            float targetYaw = getLedgeGrabYaw(ledgePos, ledgeSide);
 
-            applySmoothPosition(targetX, targetY, targetZ, yaw, false);
+            applySmoothPosition(targetPos.x, targetPos.y, targetPos.z, targetYaw, false);
             return;
         }
 

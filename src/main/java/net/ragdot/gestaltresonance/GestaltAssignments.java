@@ -33,12 +33,14 @@ public class GestaltAssignments {
     }
 
     /**
-     * Clears any Gestalt assignment from this player.
+     * Clears any Gestalt assignment from this player and resets all Gestalt data.
      */
     public static void clearGestalt(PlayerEntity player) {
         Set.copyOf(player.getCommandTags()).stream()
                 .filter(tag -> tag.startsWith(TAG_PREFIX))
                 .forEach(player::removeCommandTag);
+        
+        ((net.ragdot.gestaltresonance.util.IGestaltPlayer) player).gestaltresonance$resetAllGestaltData();
     }
 
     /**

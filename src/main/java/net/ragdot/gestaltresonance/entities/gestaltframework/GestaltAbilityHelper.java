@@ -72,12 +72,18 @@ public class GestaltAbilityHelper {
                     if (projVel.dotProduct(playerFacingFlat) < 0) {
                         projectile.setVelocity(projVel.multiply(-0.5));
                         projectile.velocityModified = true;
+                        
+                        // Drain stamina on block
+                        gestalt.setStamina(gestalt.getStamina() - 3.0f);
                     }
                 } else if (entity instanceof HostileEntity) {
                     if (toEntity.lengthSquared() < 4.0) { // 2.0 blocks
                         Vec3d pushDir = toEntityFlat.multiply(0.3);
                         entity.addVelocity(pushDir.x, 0.1, pushDir.z);
                         entity.velocityModified = true;
+                        
+                        // Drain stamina on block
+                        gestalt.setStamina(gestalt.getStamina() - 3.0f);
                     }
                 }
             }
