@@ -8,7 +8,8 @@
     "PlayerEntityGestaltThrowFlagMixin",
     "LivingEntityFallDamageMixin",
     "LivingEntityKnockbackMixin",
-    "GestaltAlphaMixin"
+    "GestaltAlphaMixin",
+    "ServerPlayNetworkHandlerMixin"
   ],
   "client": [
     "MinecraftClientMixin"

@@ -27,27 +27,22 @@ public class GestaltAnimationHelper {
 
     public void updateAnimationStates() {
         if (gestalt.getWorld().isClient) {
-            PlayerEntity owner = gestalt.getOwner();
             boolean anyOtherAnimationRunning = false;
 
-            if (owner != null) {
-                IGestaltPlayer gp = (IGestaltPlayer) owner;
-                
-                // Guard animation
-                if (gp.gestaltresonance$isGuarding()) {
-                    this.guardAnimationState.startIfNotRunning(gestalt.age);
-                    anyOtherAnimationRunning = true;
-                } else {
-                    this.guardAnimationState.stop();
-                }
+            // Guard animation
+            if (gestalt.getDataTracker().get(GestaltBase.IS_GUARDING)) {
+                this.guardAnimationState.startIfNotRunning(gestalt.age);
+                anyOtherAnimationRunning = true;
+            } else {
+                this.guardAnimationState.stop();
+            }
 
-                // Grab animation
-                if (gp.gestaltresonance$isLedgeGrabbing()) {
-                    this.grabAnimationState.startIfNotRunning(gestalt.age);
-                    anyOtherAnimationRunning = true;
-                } else {
-                    this.grabAnimationState.stop();
-                }
+            // Grab animation
+            if (gestalt.getDataTracker().get(GestaltBase.IS_GRABBING)) {
+                this.grabAnimationState.startIfNotRunning(gestalt.age);
+                anyOtherAnimationRunning = true;
+            } else {
+                this.grabAnimationState.stop();
             }
 
             // Throw animation
@@ -77,6 +72,7 @@ public class GestaltAnimationHelper {
 
             // Fallback: If we are close to the owner and not in an active action state,
             // force all non-idle animations to stop.
+            PlayerEntity owner = gestalt.getOwner();
             if (owner != null && !anyOtherAnimationRunning) {
                 double distSq = gestalt.squaredDistanceTo(owner);
                 if (distSq < 4.0) { // Within 2 blocks

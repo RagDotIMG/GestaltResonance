@@ -1,11 +1,4 @@
 /gamemode survival
-/data get entity @s Tags
-/gamemode creative
-/gamemode survival
-/gamemode creative
-/gamemode survival
-/gamemode creative
-/gamemode survival
 /gamemode creative
 /gamemode survival
 /gamemode creative
@@ -46,5 +39,12 @@
 /gamemode survival
 /time set night
 /time set day
+/gamemode creative
+/gamemode survival
+/time set day
+/gamemode creative
+/gamemode survival
+/gamemode creative
+/gamemode survival
 /gamemode creative
 /gamemode survival

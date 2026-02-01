@@ -85,6 +85,62 @@ public class GestaltresonanceClient implements ClientModInitializer {
                 )
         );
 
+        // Detect right-click + crouch (hold-to-guard)
+        ClientTickEvents.START_CLIENT_TICK.register(client -> {
+            if (client.player == null || client.options == null) return;
+            IGestaltPlayer gestaltPlayer = (IGestaltPlayer) client.player;
+
+            boolean isRightClickPressed = client.options.useKey.isPressed();
+            boolean isSneaking = client.player.isSneaking();
+
+            boolean isCurrentlyGuarding = gestaltPlayer.gestaltresonance$isGuarding();
+            boolean shouldBeGuarding;
+
+            if (isCurrentlyGuarding) {
+                // If we are already guarding, stay in guard mode as long as right click is held
+                shouldBeGuarding = isRightClickPressed;
+            } else {
+                // To start guarding, we need both right click and sneak
+                shouldBeGuarding = isRightClickPressed && isSneaking;
+            }
+
+            if (shouldBeGuarding != isCurrentlyGuarding) {
+                gestaltPlayer.gestaltresonance$setGuarding(shouldBeGuarding);
+                ClientPlayNetworking.send(new ToggleGuardModePayload(shouldBeGuarding));
+                if (shouldBeGuarding) {
+                    client.player.setSprinting(false);
+                }
+            }
+        });
+
+        // Detect right-click + crouch (hold-to-guard)
+        ClientTickEvents.START_CLIENT_TICK.register(client -> {
+            if (client.player == null || client.options == null) return;
+            IGestaltPlayer gestaltPlayer = (IGestaltPlayer) client.player;
+
+            boolean isRightClickPressed = client.options.useKey.isPressed();
+            boolean isSneaking = client.player.isSneaking();
+
+            boolean isCurrentlyGuarding = gestaltPlayer.gestaltresonance$isGuarding();
+            boolean shouldBeGuarding;
+
+            if (isCurrentlyGuarding) {
+                // If we are already guarding, stay in guard mode as long as right click is held
+                shouldBeGuarding = isRightClickPressed;
+            } else {
+                // To start guarding, we need both right click and sneak
+                shouldBeGuarding = isRightClickPressed && isSneaking;
+            }
+
+            if (shouldBeGuarding != isCurrentlyGuarding) {
+                gestaltPlayer.gestaltresonance$setGuarding(shouldBeGuarding);
+                ClientPlayNetworking.send(new ToggleGuardModePayload(shouldBeGuarding));
+                if (shouldBeGuarding) {
+                    client.player.setSprinting(false);
+                }
+            }
+        });
+
         // Each client tick, check if the key was pressed and send a packet to the server
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             if (client.player != null) {
@@ -119,28 +175,10 @@ public class GestaltresonanceClient implements ClientModInitializer {
                 }
             }
 
-            // Detect right-click + crouch (hold-to-guard)
+            // Ledge grab logic
             if (client.player != null && client.options != null) {
                 IGestaltPlayer gestaltPlayer = (IGestaltPlayer) client.player;
-                boolean isRightClickPressed = client.options.useKey.isPressed();
-                boolean isSneaking = client.player.isSneaking();
                 
-                boolean isCurrentlyGuarding = gestaltPlayer.gestaltresonance$isGuarding();
-                boolean shouldBeGuarding;
-                
-                if (isCurrentlyGuarding) {
-                    // If we are already guarding, stay in guard mode as long as right click is held
-                    shouldBeGuarding = isRightClickPressed;
-                } else {
-                    // To start guarding, we need both right click and sneak
-                    shouldBeGuarding = isRightClickPressed && isSneaking;
-                }
-
-                if (shouldBeGuarding != isCurrentlyGuarding) {
-                    gestaltPlayer.gestaltresonance$setGuarding(shouldBeGuarding);
-                    ClientPlayNetworking.send(new ToggleGuardModePayload(shouldBeGuarding));
-                }
-
                 // Ledge grab logic
                 boolean isSpacePressed = client.options.jumpKey.isPressed();
                 boolean wasOnGround = client.player.isOnGround();

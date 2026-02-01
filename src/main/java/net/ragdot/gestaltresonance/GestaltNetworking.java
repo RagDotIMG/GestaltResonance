@@ -163,6 +163,12 @@ public class GestaltNetworking {
 
     private static void handleToggleGuardMode(ServerPlayerEntity player, boolean guarding) {
         ((IGestaltPlayer) player).gestaltresonance$setGuarding(guarding);
+        if (guarding) {
+            player.stopRiding();
+            if (player.isSprinting()) {
+                player.setSprinting(false);
+            }
+        }
     }
 
     private static void handleToggleSummon(ServerPlayerEntity player) {

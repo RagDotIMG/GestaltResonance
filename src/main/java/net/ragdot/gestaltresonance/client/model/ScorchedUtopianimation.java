@@ -248,7 +248,7 @@ public class ScorchedUtopianimation {
 			))
 			.build();
 
-	public static final Animation Punch = Animation.Builder.create(0.25F)
+	public static final Animation Punch = Animation.Builder.create(0.20F)
 			.addBoneAnimation("zombie_model", new Transformation(Transformation.Targets.ROTATE,
 					new Keyframe(0.0F, AnimationHelper.createRotationalVector(20.0F, 0.0F, 0.0F), Transformation.Interpolations.LINEAR)
 			))
@@ -410,7 +410,7 @@ public class ScorchedUtopianimation {
 			))
 			.build();
 
-	public static final Animation Guard = Animation.Builder.create(0.25F)
+	public static final Animation Guard = Animation.Builder.create(0.05F)
 			.addBoneAnimation("zombie_model", new Transformation(Transformation.Targets.ROTATE,
 					new Keyframe(0.0F, AnimationHelper.createRotationalVector(0.0F, 0.0F, 0.0F), Transformation.Interpolations.LINEAR),
 					new Keyframe(0.25F, AnimationHelper.createRotationalVector(-7.5F, 0.0F, 0.0F), Transformation.Interpolations.LINEAR)

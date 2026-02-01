@@ -13,7 +13,7 @@ public class ModItemGroups {
     public static final ItemGroup GESTALT_RESONANCE_GROUP = Registry.register(Registries.ITEM_GROUP,
             Identifier.of(Gestaltresonance.MOD_ID, "gestalt_resonance"),
             FabricItemGroup.builder().displayName(Text.translatable("itemgroup.gestaltresonance.gestalt_resonance"))
-                    .icon(() -> new ItemStack(ModItems.ROTTEN_ESSENCE)).entries((displayContext, entries) -> {
+                    .icon(() -> new ItemStack(ModItems.RESONANT_DUST)).entries((displayContext, entries) -> {
                         entries.add(ModItems.POKEY_FEATHER);
                         entries.add(ModItems.ROTTEN_FEATHER);
                         entries.add(ModItems.BLASTED_FEATHER);
@@ -23,6 +23,9 @@ public class ModItemGroups {
                         entries.add(ModItems.INKED_FEATHER);
                         entries.add(ModItems.RESONANT_DUST);
                         entries.add(ModItems.NEATHER_TEAR);
+                        entries.add(ModItems.RESONANT_FLESH);
+                        entries.add(ModItems.RESONANT_INK);
+                        entries.add(ModItems.RESONANT_POWDER);
                     }).build());
 
     public static void registerItemGroups() {

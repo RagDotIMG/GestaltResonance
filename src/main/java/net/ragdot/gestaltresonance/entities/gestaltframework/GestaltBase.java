@@ -29,6 +29,8 @@ public class GestaltBase extends MobEntity {
     protected static final TrackedData<Boolean> IS_THROWING = DataTracker.registerData(GestaltBase.class, TrackedDataHandlerRegistry.BOOLEAN);
     protected static final TrackedData<Boolean> IS_WINDING_UP = DataTracker.registerData(GestaltBase.class, TrackedDataHandlerRegistry.BOOLEAN);
     protected static final TrackedData<Boolean> IS_PUNCHING = DataTracker.registerData(GestaltBase.class, TrackedDataHandlerRegistry.BOOLEAN);
+    protected static final TrackedData<Boolean> IS_GUARDING = DataTracker.registerData(GestaltBase.class, TrackedDataHandlerRegistry.BOOLEAN);
+    protected static final TrackedData<Boolean> IS_GRABBING = DataTracker.registerData(GestaltBase.class, TrackedDataHandlerRegistry.BOOLEAN);
     protected static final TrackedData<Float> STAMINA = DataTracker.registerData(GestaltBase.class, TrackedDataHandlerRegistry.FLOAT);
     protected static final TrackedData<Float> GUARD_REDUCTION = DataTracker.registerData(GestaltBase.class, TrackedDataHandlerRegistry.FLOAT);
     protected static final TrackedData<Integer> EXP = DataTracker.registerData(GestaltBase.class, TrackedDataHandlerRegistry.INTEGER);
@@ -69,6 +71,8 @@ public class GestaltBase extends MobEntity {
         builder.add(IS_THROWING, false);
         builder.add(IS_WINDING_UP, false);
         builder.add(IS_PUNCHING, false);
+        builder.add(IS_GUARDING, false);
+        builder.add(IS_GRABBING, false);
         builder.add(STAMINA, 26.0f);
         builder.add(GUARD_REDUCTION, 0.0f);
         builder.add(EXP, 0);
@@ -316,6 +320,11 @@ public class GestaltBase extends MobEntity {
 
             updateOwnerFollowAndCombat();
             updateStamina();
+
+            // Sync throw state
+            if (this.dataTracker.get(IS_THROWING) != (((IGestaltPlayer) owner).gestaltresonance$isGestaltThrowActive())) {
+                this.dataTracker.set(IS_THROWING, ((IGestaltPlayer) owner).gestaltresonance$isGestaltThrowActive());
+            }
             
             // Sync target to client
             int targetId = currentTarget != null ? currentTarget.getId() : -1;
@@ -327,6 +336,25 @@ public class GestaltBase extends MobEntity {
             boolean isAttacking = currentTarget != null && (attackCooldownTicks <= 0 || this.dataTracker.get(IS_PUNCHING));
             if (this.dataTracker.get(IS_ATTACKING) != isAttacking) {
                 this.dataTracker.set(IS_ATTACKING, isAttacking);
+            }
+
+            // Sync winding up and punching states to client
+            if (this.dataTracker.get(IS_WINDING_UP) != (windUpTicks > 0)) {
+                this.dataTracker.set(IS_WINDING_UP, windUpTicks > 0);
+            }
+            if (this.dataTracker.get(IS_PUNCHING) != (punchingTicks > 0)) {
+                this.dataTracker.set(IS_PUNCHING, punchingTicks > 0);
+            }
+
+            // Sync guarding and grabbing states from owner
+            IGestaltPlayer gp = (IGestaltPlayer) owner;
+            boolean ownerGuarding = gp.gestaltresonance$isGuarding();
+            boolean ownerGrabbing = gp.gestaltresonance$isLedgeGrabbing();
+            if (this.dataTracker.get(IS_GUARDING) != ownerGuarding) {
+                this.dataTracker.set(IS_GUARDING, ownerGuarding);
+            }
+            if (this.dataTracker.get(IS_GRABBING) != ownerGrabbing) {
+                this.dataTracker.set(IS_GRABBING, ownerGrabbing);
             }
         } else {
             // Client-side: sync target and attack state from data tracker
@@ -618,7 +646,7 @@ public class GestaltBase extends MobEntity {
             );
         }
 
-        Vec3d targetBlockCenter = new Vec3d(ledgePos.getX() + 0.3, ledgePos.getY() + 0.6, ledgePos.getZ() + 0.5);
+        Vec3d targetBlockCenter = new Vec3d(ledgePos.getX() + 0.7, ledgePos.getY() + 0.6, ledgePos.getZ() + 0.5);
         Vec3d playerPos = player.getPos();
         
         // Direction from player to block
