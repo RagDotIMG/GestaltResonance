@@ -25,23 +25,18 @@ public class PokeyFeatherItem extends Item {
 
         if (world.getBlockState(pos).isOf(Blocks.CRYING_OBSIDIAN)) {
             if (!world.isClient) {
-                // Change block to normal obsidian
-                world.setBlockState(pos, Blocks.OBSIDIAN.getDefaultState());
-
                 // Drop Nether Tear
-                ItemStack netherTear = new ItemStack(ModItems.NEATHER_TEAR);
+                ItemStack netherTear = new ItemStack(ModItems.NETHER_TEAR);
                 ItemEntity itemEntity = new ItemEntity(world, pos.getX() + 0.5, pos.getY() + 1.1, pos.getZ() + 0.5, netherTear);
                 itemEntity.setToDefaultPickupDelay();
                 world.spawnEntity(itemEntity);
 
+                // Turn Crying Obsidian into Obsidian
+                world.setBlockState(pos, Blocks.OBSIDIAN.getDefaultState());
+
                 // Play sounds
                 world.playSound(null, pos, SoundEvents.BLOCK_CHEST_OPEN, SoundCategory.BLOCKS, 1.0f, 0.5f);
                 world.playSound(null, pos, SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP, SoundCategory.BLOCKS, 1.0f, 1.0f);
-
-                // Consume item
-                if (player != null && !player.getAbilities().creativeMode) {
-                    context.getStack().decrement(1);
-                }
             }
             return ActionResult.success(world.isClient);
         }

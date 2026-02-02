@@ -17,15 +17,15 @@ public class ModItemGroups {
                         entries.add(ModItems.POKEY_FEATHER);
                         entries.add(ModItems.ROTTEN_FEATHER);
                         entries.add(ModItems.BLASTED_FEATHER);
-                        entries.add(ModItems.ROTTEN_ESSENCE);
-                        entries.add(ModItems.BLASTED_ESSENCE);
-                        entries.add(ModItems.INKED_ESSENCE);
                         entries.add(ModItems.INKED_FEATHER);
                         entries.add(ModItems.RESONANT_DUST);
-                        entries.add(ModItems.NEATHER_TEAR);
+                        entries.add(ModItems.NETHER_TEAR);
                         entries.add(ModItems.RESONANT_FLESH);
                         entries.add(ModItems.RESONANT_INK);
                         entries.add(ModItems.RESONANT_POWDER);
+                        entries.add(ModItems.ROTTEN_ESSENCE);
+                        entries.add(ModItems.INKED_ESSENCE);
+                        entries.add(ModItems.BLASTED_ESSENCE);
                     }).build());
 
     public static void registerItemGroups() {

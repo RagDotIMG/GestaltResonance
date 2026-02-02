@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:blasting",
+  "category": "misc",
+  "ingredient": {
+    "item": "gestaltresonance:resonant_powder"
+  },
+  "result": {
+    "id": "gestaltresonance:blasted_essence"
+  },
+  "experience": 0.1,
+  "cookingtime": 100
+}

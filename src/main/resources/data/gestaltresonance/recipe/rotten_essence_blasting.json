@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:blasting",
+  "category": "misc",
+  "ingredient": {
+    "item": "gestaltresonance:resonant_flesh"
+  },
+  "result": {
+    "id": "gestaltresonance:rotten_essence"
+  },
+  "experience": 0.1,
+  "cookingtime": 100
+}

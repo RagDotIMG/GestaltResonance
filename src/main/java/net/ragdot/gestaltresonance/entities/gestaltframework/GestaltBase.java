@@ -634,31 +634,14 @@ public class GestaltBase extends MobEntity {
     // Ledge Grab positioning
     public static Vec3d getLedgeGrabPosition(PlayerEntity player, net.minecraft.util.math.BlockPos ledgePos) {
         if (ledgePos == null) {
-
-            double rad = Math.toRadians(player.getYaw());
-            double backX = -Math.sin(rad);
-            double backZ = Math.cos(rad);
-            double backOffset = 0.0;
-            return new Vec3d(
-                    player.getX() + backOffset * backX,
-                    player.getY() + player.getEyeHeight(player.getPose()) - 0.0,
-                    player.getZ() + backOffset * backZ
-            );
+            return player.getEyePos();
         }
 
-        Vec3d targetBlockCenter = new Vec3d(ledgePos.getX() + 0.7, ledgePos.getY() + 0.6, ledgePos.getZ() + 0.5);
-        Vec3d playerPos = player.getPos();
+        // Center of the block the player is grabbing
+        Vec3d blockCenter = Vec3d.ofCenter(ledgePos);
         
-        // Direction from player to block
-        Vec3d toBlock = targetBlockCenter.subtract(playerPos).normalize();
-        
-        // Position it 2.0 blocks away from the player in the direction of the block
-        // And 2.6 blocks lower than eye height
-        return new Vec3d(
-                player.getX() + toBlock.x * 1.9,
-                player.getY() + player.getEyeHeight(player.getPose()) - 2.4,
-                player.getZ() + toBlock.z * - 0.5
-        );
+        // Position the stand slightly below the block center
+        return blockCenter.subtract(1.7, 1.8, 0.2);
     }
 
     public static float getLedgeGrabYaw(net.minecraft.util.math.BlockPos ledgePos, net.minecraft.util.math.Direction ledgeSide) {

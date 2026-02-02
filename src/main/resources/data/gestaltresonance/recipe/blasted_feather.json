@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "gestaltresonance:pokey_feather"
+    },
+    {
+      "item": "gestaltresonance:blasted_essence"
+    }
+  ],
+  "result": {
+    "id": "gestaltresonance:blasted_feather",
+    "count": 1
+  }
+}
