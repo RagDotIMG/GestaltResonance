@@ -19,10 +19,8 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.ragdot.gestaltresonance.effect.ModStatusEffects;
-
 import net.ragdot.gestaltresonance.util.IGestaltPlayer;
 import java.util.List;
-import java.util.UUID;
 
 public class ScorchedUtopia extends GestaltBase {
     protected static final TrackedData<Boolean> IS_AURA_ACTIVE = DataTracker.registerData(ScorchedUtopia.class, TrackedDataHandlerRegistry.BOOLEAN);

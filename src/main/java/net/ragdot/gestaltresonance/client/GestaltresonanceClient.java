@@ -161,11 +161,6 @@ public class GestaltresonanceClient implements ClientModInitializer {
 
         // Each client tick, check if the key was pressed and send a packet to the server
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
-            // Removed ledge grab cooldown mechanic; rely on input/airborne gating
-            // (no per-tick cooldown decrement)
-            if (client.player != null) {
-                // no-op
-            }
 
             while (summonGestaltKey.wasPressed()) {
                 if (client.player != null && client.world != null) {
@@ -192,7 +187,7 @@ public class GestaltresonanceClient implements ClientModInitializer {
             }
 
             // Ledge grab logic
-            if (client.player != null && client.options != null) {
+            if (client.player != null && client.options != null && client.world != null) {
                 IGestaltPlayer gestaltPlayer = (IGestaltPlayer) client.player;
                 
                 // Ledge grab logic

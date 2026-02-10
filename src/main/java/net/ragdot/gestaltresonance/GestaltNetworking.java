@@ -49,29 +49,29 @@ public class GestaltNetworking {
         );
 
         // 2) Register server handlers
-        ServerPlayNetworking.registerGlobalReceiver(ToggleGestaltSummonPayload.ID, (payload, context) -> {
-            context.server().execute(() -> handleToggleSummon(context.player()));
-        });
+        ServerPlayNetworking.registerGlobalReceiver(ToggleGestaltSummonPayload.ID, (payload, context) ->
+                context.server().execute(() -> handleToggleSummon(context.player()))
+        );
 
-        ServerPlayNetworking.registerGlobalReceiver(ToggleGuardModePayload.ID, (payload, context) -> {
-            context.server().execute(() -> handleToggleGuardMode(context.player(), payload.guarding()));
-        });
+        ServerPlayNetworking.registerGlobalReceiver(ToggleGuardModePayload.ID, (payload, context) ->
+                context.server().execute(() -> handleToggleGuardMode(context.player(), payload.guarding()))
+        );
 
-        ServerPlayNetworking.registerGlobalReceiver(ToggleLedgeGrabPayload.ID, (payload, context) -> {
-            context.server().execute(() -> handleToggleLedgeGrab(context.player(), payload.grabbing(), payload.pos(), payload.side()));
-        });
+        ServerPlayNetworking.registerGlobalReceiver(ToggleLedgeGrabPayload.ID, (payload, context) ->
+                context.server().execute(() -> handleToggleLedgeGrab(context.player(), payload.grabbing(), payload.pos(), payload.side()))
+        );
 
-        ServerPlayNetworking.registerGlobalReceiver(GestaltThrowPayload.ID, (payload, context) -> {
-            context.server().execute(() -> handleGestaltThrow(context.player(), payload.active()));
-        });
+        ServerPlayNetworking.registerGlobalReceiver(GestaltThrowPayload.ID, (payload, context) ->
+                context.server().execute(() -> handleGestaltThrow(context.player(), payload.active()))
+        );
 
-        ServerPlayNetworking.registerGlobalReceiver(UsePowerPayload.ID, (payload, context) -> {
-            context.server().execute(() -> handleUsePower(context.player(), payload.powerIndex()));
-        });
+        ServerPlayNetworking.registerGlobalReceiver(UsePowerPayload.ID, (payload, context) ->
+                context.server().execute(() -> handleUsePower(context.player(), payload.powerIndex()))
+        );
 
-        ServerPlayNetworking.registerGlobalReceiver(DashGuardPunchPayload.ID, (payload, context) -> {
-            context.server().execute(() -> handleDashGuardPunch(context.player()));
-        });
+        ServerPlayNetworking.registerGlobalReceiver(DashGuardPunchPayload.ID, (payload, context) ->
+                context.server().execute(() -> handleDashGuardPunch(context.player()))
+        );
     }
 
     private static void handleUsePower(ServerPlayerEntity player, int powerIndex) {
@@ -151,6 +151,7 @@ public class GestaltNetworking {
         }
     }
 
+    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
     private static void handleToggleLedgeGrab(ServerPlayerEntity player, boolean grabbing, java.util.Optional<net.minecraft.util.math.BlockPos> pos, java.util.Optional<net.minecraft.util.math.Direction> side) {
         IGestaltPlayer gestaltPlayer = (IGestaltPlayer) player;
         boolean wasGrabbing = gestaltPlayer.gestaltresonance$isLedgeGrabbing();

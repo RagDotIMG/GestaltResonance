@@ -35,8 +35,7 @@ public class PlayerEntityGestaltThrowFlagMixin implements IGestaltPlayer {
         builder.add(MUFFLED_MOVEMENT_ACTIVE, false);
     }
 
-    @Unique
-    private int gestaltresonance$ledgeGrabCooldown = 0;
+    // Removed obsolete ledge grab cooldown state
 
     @Unique
     private final java.util.Map<net.minecraft.util.Identifier, Float> gestaltresonance$staminaMap = new java.util.HashMap<>();
@@ -98,15 +97,8 @@ public class PlayerEntityGestaltThrowFlagMixin implements IGestaltPlayer {
         return sideId == -1 ? null : net.minecraft.util.math.Direction.byId(sideId);
     }
 
-    @Override
-    public void gestaltresonance$setLedgeGrabCooldown(int ticks) {
-        this.gestaltresonance$ledgeGrabCooldown = ticks;
-    }
+    // Cooldown mechanics removed; no-op retained method deleted
 
-    @Override
-    public int gestaltresonance$getLedgeGrabCooldown() {
-        return this.gestaltresonance$ledgeGrabCooldown;
-    }
 
     @Override
     public void gestaltresonance$setRedirectionActive(boolean active) {

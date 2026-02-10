@@ -3,88 +3,21 @@ package net.ragdot.gestaltresonance.client.model;
 
 import net.minecraft.client.model.*;
 import net.minecraft.client.render.VertexConsumer;
-import net.minecraft.client.render.entity.model.EntityModelLayer;
 import net.minecraft.client.render.entity.model.SinglePartEntityModel;
 import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.util.Identifier;
-import net.ragdot.gestaltresonance.Gestaltresonance;
 import net.ragdot.gestaltresonance.entities.ScorchedUtopia;
 
 
 public class ScorchedUtopiaModel extends SinglePartEntityModel<ScorchedUtopia> {
 
-	public static final EntityModelLayer SCORCHED_UTOPIA = new EntityModelLayer(Identifier.of(Gestaltresonance.MOD_ID, "scorched_utopia"), "main");
-
-
-	private final ModelPart zombie_model;
-	private final ModelPart body_top;
-	private final ModelPart body_up;
-	private final ModelPart head;
-	private final ModelPart jaw;
-	private final ModelPart mask;
-	private final ModelPart front1;
-	private final ModelPart front2;
-	private final ModelPart R_side;
-	private final ModelPart L_side;
-	private final ModelPart top1;
-	private final ModelPart top2;
-	private final ModelPart hair;
-	private final ModelPart body_u;
-	private final ModelPart wing;
-	private final ModelPart gear;
-	private final ModelPart arms;
-	private final ModelPart R_arm;
-	private final ModelPart R_u_arm;
-	private final ModelPart R_l_arm;
-	private final ModelPart L_arm;
-	private final ModelPart L_u_arm;
-	private final ModelPart L_l_arm;
-	private final ModelPart body_mid;
-	private final ModelPart body_bot;
-	private final ModelPart body_low;
-	private final ModelPart legs;
-	private final ModelPart R_leg;
-	private final ModelPart R_u_leg;
-	private final ModelPart R_l_leg;
-	private final ModelPart L_leg;
-	private final ModelPart left_u_leg;
-	private final ModelPart left_l_leg;
+    private final ModelPart zombie_model;
 	public ScorchedUtopiaModel(ModelPart root) {
 		this.zombie_model = root.getChild("zombie_model");
-		this.body_top = this.zombie_model.getChild("body_top");
-		this.body_up = this.body_top.getChild("body_up");
-		this.head = this.body_up.getChild("head");
-		this.jaw = this.head.getChild("jaw");
-		this.mask = this.head.getChild("mask");
-		this.front1 = this.mask.getChild("front1");
-		this.front2 = this.mask.getChild("front2");
-		this.R_side = this.mask.getChild("R_side");
-		this.L_side = this.mask.getChild("L_side");
-		this.top1 = this.mask.getChild("top1");
-		this.top2 = this.mask.getChild("top2");
-		this.hair = this.mask.getChild("hair");
-		this.body_u = this.body_up.getChild("body_u");
-		this.wing = this.body_u.getChild("wing");
-		this.gear = this.body_u.getChild("gear");
-		this.arms = this.body_up.getChild("arms");
-		this.R_arm = this.arms.getChild("R_arm");
-		this.R_u_arm = this.R_arm.getChild("R_u_arm");
-		this.R_l_arm = this.R_arm.getChild("R_l_arm");
-		this.L_arm = this.arms.getChild("L_arm");
-		this.L_u_arm = this.L_arm.getChild("L_u_arm");
-		this.L_l_arm = this.L_arm.getChild("L_l_arm");
-		this.body_mid = this.body_top.getChild("body_mid");
-		this.body_bot = this.zombie_model.getChild("body_bot");
-		this.body_low = this.body_bot.getChild("body_low");
-		this.legs = this.body_bot.getChild("legs");
-		this.R_leg = this.legs.getChild("R_leg");
-		this.R_u_leg = this.R_leg.getChild("R_u_leg");
-		this.R_l_leg = this.R_leg.getChild("R_l_leg");
-		this.L_leg = this.legs.getChild("L_leg");
-		this.left_u_leg = this.L_leg.getChild("left_u_leg");
-		this.left_l_leg = this.L_leg.getChild("left_l_leg");
-	}
-	public static TexturedModelData getTexturedModelData() {
+        // Only keep the root part for rendering/animation traversal.
+        // All sub-parts are referenced by name via animation definitions and don't need fields here.
+    }
+    @SuppressWarnings("unused")
+    public static TexturedModelData getTexturedModelData() {
 		ModelData modelData = new ModelData();
 		ModelPartData modelPartData = modelData.getRoot();
 		ModelPartData zombie_model = modelPartData.addChild("zombie_model", ModelPartBuilder.create(), ModelTransform.of(0.0F, 20.9F, 0.0F, 0.2618F, 0.0F, 0.0F));

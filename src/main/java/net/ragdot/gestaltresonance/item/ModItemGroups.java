@@ -8,7 +8,6 @@ import net.minecraft.registry.Registry;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.ragdot.gestaltresonance.Gestaltresonance;
-import net.ragdot.gestaltresonance.block.ModBlocks;
 
 public class ModItemGroups {
     public static final ItemGroup GESTALT_RESONANCE_GROUP = Registry.register(Registries.ITEM_GROUP,
@@ -32,5 +31,8 @@ public class ModItemGroups {
 
     public static void registerItemGroups() {
         Gestaltresonance.LOGGER.info("Registering Item Groups for " + Gestaltresonance.MOD_ID);
+        // Touch the static field to mark it as used (ensures registration side-effect is retained without warnings)
+        @SuppressWarnings("unused")
+        ItemGroup _keep = GESTALT_RESONANCE_GROUP;
     }
 }

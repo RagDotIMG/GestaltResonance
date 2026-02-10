@@ -61,7 +61,7 @@ public class GestaltBase extends MobEntity {
     private boolean guardDashActive = false;
     private double guardDashDistanceLeft = 0.0;
     private Vec3d guardDashDirection = Vec3d.ZERO;
-    private boolean guardDashHitDone = false;
+    // Removed unused flag that was never read
 
     // Post-dash stick (freeze in place to display punch animation)
     private boolean postDashStickActive = false;
@@ -393,7 +393,7 @@ public class GestaltBase extends MobEntity {
             //   so everyone sees the same position/animations.
             if (owner != null && owner.isAlive()) {
                 // Determine if this owner is the local client player
-                boolean isLocalOwner = false;
+                boolean isLocalOwner;
                 try {
                     net.minecraft.client.MinecraftClient mc = net.minecraft.client.MinecraftClient.getInstance();
                     isLocalOwner = (mc != null && mc.player != null && owner.getId() == mc.player.getId());
@@ -499,7 +499,6 @@ public class GestaltBase extends MobEntity {
         }
         guardDashDistanceLeft = getGuardDashRange();
         guardDashActive = true;
-        guardDashHitDone = false;
         this.dataTracker.set(IS_GUARD_DASHING, true);
 
         // Initialize animation timers: drive via timers so data tracker sync remains authoritative
@@ -608,7 +607,6 @@ public class GestaltBase extends MobEntity {
             this.postDashStickActive = true;
             this.dataTracker.set(IS_POST_DASH_STICKING, true);
 
-            guardDashHitDone = true;
             stopGuardDash();
             return;
         }
@@ -930,7 +928,7 @@ public class GestaltBase extends MobEntity {
         return new Vec3d(outX, outY, outZ);
     }
 
-    public static float getLedgeGrabYaw(net.minecraft.util.math.BlockPos ledgePos, net.minecraft.util.math.Direction ledgeSide) {
+    public static float getLedgeGrabYaw(net.minecraft.util.math.Direction ledgeSide) {
         if (ledgeSide != null) {
             return ledgeSide.getOpposite().asRotation();
         }
@@ -1029,7 +1027,7 @@ public class GestaltBase extends MobEntity {
             } else {
                 // Fallback to previous behavior if data missing
                 Vec3d targetPos = getLedgeGrabPosition(owner, ledgePos);
-                float targetYaw = getLedgeGrabYaw(ledgePos, ledgeSide);
+                float targetYaw = getLedgeGrabYaw(ledgeSide);
                 applySmoothPosition(targetPos.x, targetPos.y, targetPos.z, targetYaw, false);
             }
             return;

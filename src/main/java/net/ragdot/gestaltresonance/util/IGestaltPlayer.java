@@ -16,8 +16,6 @@ public interface IGestaltPlayer {
     void gestaltresonance$setLedgeGrabSide(net.minecraft.util.math.Direction side);
     net.minecraft.util.math.Direction gestaltresonance$getLedgeGrabSide();
 
-    void gestaltresonance$setLedgeGrabCooldown(int ticks);
-    int gestaltresonance$getLedgeGrabCooldown();
 
     void gestaltresonance$setRedirectionActive(boolean active);
     boolean gestaltresonance$isRedirectionActive();

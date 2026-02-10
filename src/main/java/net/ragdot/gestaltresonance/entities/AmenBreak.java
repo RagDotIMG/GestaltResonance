@@ -8,9 +8,6 @@ import net.minecraft.world.World;
 import net.minecraft.entity.player.PlayerEntity;
 import net.ragdot.gestaltresonance.util.IGestaltPlayer;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.block.Blocks;
-import net.minecraft.util.math.Direction;
 
 
 public class AmenBreak extends GestaltBase {
@@ -61,11 +58,6 @@ public class AmenBreak extends GestaltBase {
 
 
     @Override
-    protected boolean canMeleeAttack() {
-        return false;
-    }
-
-    @Override
     protected double getMaxChaseRange() { return 1.0; }
 
     @Override
@@ -74,8 +66,7 @@ public class AmenBreak extends GestaltBase {
     @Override
     protected float getAttackDamage() { return 8.0f; }
 
-    @Override
-    protected int getAttackCooldownTicks() { return 40; }
+    // Use default attack cooldown from base
 
     @Override
     protected float getDamageReductionFactor() {
