@@ -19,5 +19,8 @@
   "key.gestaltresonance.summon_gestalt": "Summon/Dismiss Gestalt",
   "key.gestaltresonance.power1": "Gestalt Power 1",
   "key.gestaltresonance.power2": "Gestalt Power 2",
-  "key.gestaltresonance.power3": "Gestalt Power 3"
+  "key.gestaltresonance.power3": "Gestalt Power 3",
+  "ability.gestaltresonance.amen_break.jungle_bomber": "Jungle Bomber",
+  "block.gestaltresonance.popsprout": "Pop Sprout",
+  "block.gestaltresonance.pod_pad": "Pod Pad"
 }

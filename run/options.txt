@@ -126,7 +126,7 @@ key_key.gestaltresonance.power1:key.keyboard.z
 key_key.gestaltresonance.power2:key.keyboard.x
 key_key.gestaltresonance.power3:key.keyboard.c
 soundCategory_master:1.0
-soundCategory_music:1.0
+soundCategory_music:0.0
 soundCategory_record:1.0
 soundCategory_weather:1.0
 soundCategory_block:1.0
@@ -142,3 +142,4 @@ modelPart_right_sleeve:true
 modelPart_left_pants_leg:true
 modelPart_right_pants_leg:true
 modelPart_hat:true
+fullscreenResolution:1280x720@60:24

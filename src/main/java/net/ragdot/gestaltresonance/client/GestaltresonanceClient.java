@@ -4,14 +4,17 @@ import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityModelLayerRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
 import net.ragdot.gestaltresonance.client.model.AmenBreakModel;
+import net.ragdot.gestaltresonance.client.model.SpillwaysModel;
 import net.ragdot.gestaltresonance.entities.gestaltframework.GestaltBase;
 import net.ragdot.gestaltresonance.network.ToggleGestaltSummonPayload;
 import net.ragdot.gestaltresonance.network.ToggleGuardModePayload;
 import net.ragdot.gestaltresonance.network.ToggleLedgeGrabPayload;
 import net.ragdot.gestaltresonance.network.UsePowerPayload;
+import net.ragdot.gestaltresonance.network.DashGuardPunchPayload;
 import net.ragdot.gestaltresonance.util.IGestaltPlayer;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.KeyBinding;
@@ -32,6 +35,11 @@ import net.ragdot.gestaltresonance.Gestaltresonance;
 import net.ragdot.gestaltresonance.client.model.ScorchedUtopiaModel;
 import net.ragdot.gestaltresonance.entities.AmenBreak;
 import net.ragdot.gestaltresonance.entities.ScorchedUtopia;
+import net.ragdot.gestaltresonance.entities.Spillways;
+import net.ragdot.gestaltresonance.block.ModBlocks;
+import net.ragdot.gestaltresonance.projectile.PopBud;
+import net.ragdot.gestaltresonance.client.model.PopBudModel;
+import net.minecraft.util.math.MathHelper;
 
 public class GestaltresonanceClient implements ClientModInitializer {
 
@@ -43,6 +51,7 @@ public class GestaltresonanceClient implements ClientModInitializer {
     
     private static boolean wasSpacePressedLastTick = false;
     private static boolean wasOnGroundLastTick = true;
+    private static boolean wasAttackPressedLastTick = false;
 
     @Override
     public void onInitializeClient() {
@@ -91,6 +100,7 @@ public class GestaltresonanceClient implements ClientModInitializer {
             IGestaltPlayer gestaltPlayer = (IGestaltPlayer) client.player;
 
             boolean isRightClickPressed = client.options.useKey.isPressed();
+            boolean isAttackPressed = client.options.attackKey.isPressed();
             boolean isSneaking = client.player.isSneaking();
 
             boolean isCurrentlyGuarding = gestaltPlayer.gestaltresonance$isGuarding();
@@ -111,6 +121,14 @@ public class GestaltresonanceClient implements ClientModInitializer {
                     client.player.setSprinting(false);
                 }
             }
+
+            // Trigger universal guard dash-punch: on left-click while guarding
+            // Do NOT cancel guard client-side; let the server decide based on stamina.
+            if (isCurrentlyGuarding && isAttackPressed && !wasAttackPressedLastTick) {
+                ClientPlayNetworking.send(new DashGuardPunchPayload());
+            }
+
+            wasAttackPressedLastTick = isAttackPressed;
         });
 
         // Detect right-click + crouch (hold-to-guard)
@@ -143,12 +161,10 @@ public class GestaltresonanceClient implements ClientModInitializer {
 
         // Each client tick, check if the key was pressed and send a packet to the server
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
+            // Removed ledge grab cooldown mechanic; rely on input/airborne gating
+            // (no per-tick cooldown decrement)
             if (client.player != null) {
-                IGestaltPlayer gestaltPlayer = (IGestaltPlayer) client.player;
-                int cooldown = gestaltPlayer.gestaltresonance$getLedgeGrabCooldown();
-                if (cooldown > 0) {
-                    gestaltPlayer.gestaltresonance$setLedgeGrabCooldown(cooldown - 1);
-                }
+                // no-op
             }
 
             while (summonGestaltKey.wasPressed()) {
@@ -185,10 +201,8 @@ public class GestaltresonanceClient implements ClientModInitializer {
                 
                 boolean isLedgeGrabbing = gestaltPlayer.gestaltresonance$isLedgeGrabbing();
                 boolean isInAir = !wasOnGround && !client.player.getAbilities().flying;
-                boolean isCooldownActive = gestaltPlayer.gestaltresonance$getLedgeGrabCooldown() > 0;
-                
                 // Ledge grab should only activate if spacebar is triggered mid-air (was not on ground last tick either)
-                if (isSpacePressed && !wasSpacePressedLastTick && isInAir && !wasOnGroundLastTick && !isLedgeGrabbing && !isCooldownActive) {
+                if (isSpacePressed && !wasSpacePressedLastTick && isInAir && !wasOnGroundLastTick && !isLedgeGrabbing) {
                     // Only allow if Gestalt is active
                     boolean hasActiveGestalt = !client.world.getEntitiesByClass(
                             GestaltBase.class,
@@ -220,7 +234,6 @@ public class GestaltresonanceClient implements ClientModInitializer {
                 } else if (isLedgeGrabbing && !isSpacePressed) {
                     // Release ledge grab
                     gestaltPlayer.gestaltresonance$setLedgeGrabbing(false);
-                    gestaltPlayer.gestaltresonance$setLedgeGrabCooldown(20);
                     ClientPlayNetworking.send(new ToggleLedgeGrabPayload(false, java.util.Optional.empty(), java.util.Optional.empty()));
                 }
                 
@@ -230,6 +243,10 @@ public class GestaltresonanceClient implements ClientModInitializer {
         });
 
         // === Renderer / model setup ===
+
+        // Ensure correct transparency for flower-like blocks and water-surface pad
+        BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.POPSPROUT, RenderLayer.getCutout());
+        BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.POP_PAD, RenderLayer.getCutout());
 
         // 1) register model layer for ScorchedUtopia Blockbench model
         EntityModelLayerRegistry.registerModelLayer(
@@ -258,6 +275,28 @@ public class GestaltresonanceClient implements ClientModInitializer {
         EntityRendererRegistry.register(
                 Gestaltresonance.AMEN_BREAK,
                 AmenBreakRenderer::new
+        );
+
+        // 5) Spillways uses custom Blockbench model
+        EntityModelLayerRegistry.registerModelLayer(
+                ModModelLayers.SPILLWAYS,
+                SpillwaysModel::getTexturedModelData
+        );
+
+        EntityRendererRegistry.register(
+                Gestaltresonance.SPILLWAYS,
+                SpillwaysRenderer::new
+        );
+
+        // 6) Pop Bud projectile renderer/model
+        EntityModelLayerRegistry.registerModelLayer(
+                ModModelLayers.POP_BUD,
+                PopBudModel::getTexturedModelData
+        );
+
+        EntityRendererRegistry.register(
+                Gestaltresonance.POP_BUD,
+                PopBudRenderer::new
         );
 
         HudRenderCallback.EVENT.register(new StaminaHudRenderer());
@@ -390,6 +429,97 @@ public class GestaltresonanceClient implements ClientModInitializer {
 
         @Override
         public Identifier getTexture(AmenBreak entity) {
+            return TEXTURE;
+        }
+    }
+
+    // ===== Renderer that uses Blockbench model for Spillways =====
+    public static class SpillwaysRenderer
+            extends MobEntityRenderer<Spillways, SpillwaysModel> {
+
+        private static final Identifier TEXTURE = Identifier.of(
+                Gestaltresonance.MOD_ID,
+                "textures/entity/spillways.png"
+        );
+
+        public SpillwaysRenderer(EntityRendererFactory.Context ctx) {
+            super(ctx,
+                    new SpillwaysModel(ctx.getPart(ModModelLayers.SPILLWAYS)),
+                    0.5f
+            );
+        }
+
+        @Override
+        public void render(Spillways entity, float yaw, float tickDelta,
+                           MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light) {
+            super.render(entity, yaw, tickDelta, matrices, vertexConsumers, light);
+        }
+
+        @Override
+        protected RenderLayer getRenderLayer(Spillways entity, boolean showBody, boolean translucent, boolean showOutline) {
+            if (GestaltRenderer.isBlockingFirstPersonView(entity)) {
+                return RenderLayer.getEntityTranslucent(TEXTURE);
+            }
+            return super.getRenderLayer(entity, showBody, translucent, showOutline);
+        }
+
+        @Override
+        public Identifier getTexture(Spillways entity) {
+            return TEXTURE;
+        }
+    }
+
+    // ===== Renderer for Pop Bud projectile using Blockbench model =====
+    public static class PopBudRenderer extends net.minecraft.client.render.entity.EntityRenderer<PopBud> {
+        private static final Identifier TEXTURE = Identifier.of(
+                Gestaltresonance.MOD_ID,
+                "textures/projectile/popbud_texture.png"
+        );
+        private final PopBudModel model;
+
+        public PopBudRenderer(EntityRendererFactory.Context ctx) {
+            super(ctx);
+            this.model = new PopBudModel(ctx.getPart(ModModelLayers.POP_BUD));
+        }
+
+        @Override
+        public void render(PopBud entity, float entityYaw, float tickDelta, MatrixStack matrices,
+                           VertexConsumerProvider vertexConsumers, int light) {
+            matrices.push();
+            // Orient the model so its TOP faces forward along the flight direction.
+            // 1) Yaw to face camera-forward, 2) Pitch to align with trajectory,
+            // 3) Rotate -90° around X so model's +Y (top) points forward (-Z in render space).
+            float pitch = entity.getPitch(tickDelta);
+            matrices.multiply(net.minecraft.util.math.RotationAxis.POSITIVE_Y.rotationDegrees(180.0f - entityYaw));
+            matrices.multiply(net.minecraft.util.math.RotationAxis.POSITIVE_X.rotationDegrees(-pitch));
+            matrices.multiply(net.minecraft.util.math.RotationAxis.POSITIVE_X.rotationDegrees(-90.0f));
+
+            // If floating on a liquid, stop spinning and apply a gentle bobbing motion.
+            if (entity.isFloating()) {
+                // Bobbing: amplitude ~0.03 blocks, period ~24 ticks
+                float t = (entity.age + tickDelta);
+                float bob = MathHelper.sin(t * (2.0f * (float)Math.PI / 24.0f)) * 0.03f;
+                matrices.translate(0.0, bob, 0.0);
+            } else {
+                // Spin around local Z axis while airborne
+                if (!entity.isOnGround()) {
+                    // ~1 rotation every 5 ticks => 72 deg per tick
+                    float spinDegreesPerTick = 72.0f;
+                    float age = (float) entity.age + tickDelta;
+                    float roll = (age * spinDegreesPerTick) % 360.0f;
+                    matrices.multiply(net.minecraft.util.math.RotationAxis.POSITIVE_Z.rotationDegrees(roll));
+                }
+            }
+
+            // Center and scale if needed (default 1:1)
+            var vc = vertexConsumers.getBuffer(RenderLayer.getEntityCutoutNoCull(TEXTURE));
+            this.model.render(matrices, vc, light, net.minecraft.client.render.OverlayTexture.DEFAULT_UV, 0xFFFFFFFF);
+            matrices.pop();
+            super.render(entity, entityYaw, tickDelta, matrices, vertexConsumers, light);
+        }
+
+        @Override
+        public Identifier getTexture(PopBud entity) {
             return TEXTURE;
         }
     }

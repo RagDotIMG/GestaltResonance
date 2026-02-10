@@ -14,6 +14,7 @@ import net.ragdot.gestaltresonance.network.ToggleGestaltSummonPayload;
 import net.ragdot.gestaltresonance.network.ToggleGuardModePayload;
 import net.ragdot.gestaltresonance.network.ToggleLedgeGrabPayload;
 import net.ragdot.gestaltresonance.network.UsePowerPayload;
+import net.ragdot.gestaltresonance.network.DashGuardPunchPayload;
 import net.ragdot.gestaltresonance.util.IGestaltPlayer;
 
 import java.util.List;
@@ -42,6 +43,10 @@ public class GestaltNetworking {
                 UsePowerPayload.ID,
                 UsePowerPayload.CODEC
         );
+        PayloadTypeRegistry.playC2S().register(
+                DashGuardPunchPayload.ID,
+                DashGuardPunchPayload.CODEC
+        );
 
         // 2) Register server handlers
         ServerPlayNetworking.registerGlobalReceiver(ToggleGestaltSummonPayload.ID, (payload, context) -> {
@@ -63,25 +68,87 @@ public class GestaltNetworking {
         ServerPlayNetworking.registerGlobalReceiver(UsePowerPayload.ID, (payload, context) -> {
             context.server().execute(() -> handleUsePower(context.player(), payload.powerIndex()));
         });
+
+        ServerPlayNetworking.registerGlobalReceiver(DashGuardPunchPayload.ID, (payload, context) -> {
+            context.server().execute(() -> handleDashGuardPunch(context.player()));
+        });
     }
 
     private static void handleUsePower(ServerPlayerEntity player, int powerIndex) {
         if (powerIndex == 0) {
             ServerWorld world = player.getServerWorld();
-            List<ScorchedUtopia> stands = world.getEntitiesByClass(
+
+            // Scorched Utopia: toggle aura when present
+            List<ScorchedUtopia> suStands = world.getEntitiesByClass(
                     ScorchedUtopia.class,
                     player.getBoundingBox().expand(256.0),
                     stand -> player.getUuid().equals(stand.getOwnerUuid())
             );
-
-            for (ScorchedUtopia stand : stands) {
+            for (ScorchedUtopia stand : suStands) {
                 stand.setAuraActive(!stand.isAuraActive());
+            }
+
+            // Amen Break: Ability 1 — Jungle Bomber (placeholder)
+            List<AmenBreak> amenStands = world.getEntitiesByClass(
+                    AmenBreak.class,
+                    player.getBoundingBox().expand(256.0),
+                    stand -> player.getUuid().equals(stand.getOwnerUuid())
+            );
+            for (AmenBreak stand : amenStands) {
+                stand.jungleBomber(player);
+            }
+
+            // Spillways: Ability 1 — create a water block at look target
+            List<net.ragdot.gestaltresonance.entities.Spillways> spillwaysStands = world.getEntitiesByClass(
+                    net.ragdot.gestaltresonance.entities.Spillways.class,
+                    player.getBoundingBox().expand(256.0),
+                    stand -> player.getUuid().equals(stand.getOwnerUuid())
+            );
+            for (net.ragdot.gestaltresonance.entities.Spillways stand : spillwaysStands) {
+                stand.lachryma(player);
             }
         }
     }
 
     private static void handleGestaltThrow(ServerPlayerEntity player, boolean active) {
         ((IGestaltPlayer) player).gestaltresonance$setGestaltThrowActive(active);
+    }
+
+    private static void handleDashGuardPunch(ServerPlayerEntity player) {
+        IGestaltPlayer gp = (IGestaltPlayer) player;
+        // Only consider dash if the player is currently guarding
+        if (!gp.gestaltresonance$isGuarding()) {
+            return;
+        }
+
+        ServerWorld world = player.getServerWorld();
+        // Find all GestaltBase owned by the player in a reasonable radius
+        List<GestaltBase> gestalts = world.getEntitiesByClass(
+                GestaltBase.class,
+                player.getBoundingBox().expand(256.0),
+                g -> player.getUuid().equals(g.getOwnerUuid())
+        );
+
+        boolean canDash = false;
+        for (GestaltBase g : gestalts) {
+            if (g.getStamina() >= 12.0f) {
+                canDash = true;
+                break;
+            }
+        }
+
+        if (!canDash) {
+            // Insufficient stamina → do nothing; keep guarding
+            return;
+        }
+
+        // We have enough stamina; cancel guarding and start dash on eligible Gestalts
+        gp.gestaltresonance$setGuarding(false);
+        for (GestaltBase g : gestalts) {
+            if (g.getStamina() >= 12.0f) {
+                g.startGuardDashPunch();
+            }
+        }
     }
 
     private static void handleToggleLedgeGrab(ServerPlayerEntity player, boolean grabbing, java.util.Optional<net.minecraft.util.math.BlockPos> pos, java.util.Optional<net.minecraft.util.math.Direction> side) {
@@ -168,6 +235,18 @@ public class GestaltNetworking {
             if (player.isSprinting()) {
                 player.setSprinting(false);
             }
+
+            // Snap owned Gestalt(s) immediately to the guarding position (server authoritative)
+            ServerWorld world = player.getServerWorld();
+            List<GestaltBase> stands = world.getEntitiesByClass(
+                    GestaltBase.class,
+                    player.getBoundingBox().expand(256.0),
+                    stand -> player.getUuid().equals(stand.getOwnerUuid())
+            );
+
+            for (GestaltBase stand : stands) {
+                stand.snapToGuardPosition();
+            }
         }
     }
 
@@ -184,6 +263,12 @@ public class GestaltNetworking {
         var amenBreakId = Identifier.of(Gestaltresonance.MOD_ID, "amen_break");
         if (assigned.equals(amenBreakId)) {
             toggleAmenBreak(player);
+            return;
+        }
+
+        var spillwaysId = Identifier.of(Gestaltresonance.MOD_ID, "spillways");
+        if (assigned.equals(spillwaysId)) {
+            toggleSpillways(player);
         }
     }
 
@@ -200,7 +285,10 @@ public class GestaltNetworking {
         );
 
         if (!stands.isEmpty()) {
-            stands.forEach(GestaltBase::discard);
+            // Explicitly clear passives before removal to avoid any lingering owner-bound modifiers
+            for (AmenBreak stand : stands) {
+                stand.despawnWithCleanup();
+            }
             return;
         }
 
@@ -247,7 +335,9 @@ public class GestaltNetworking {
         );
 
         if (!stands.isEmpty()) {
-            stands.forEach(GestaltBase::discard);
+            for (ScorchedUtopia stand : stands) {
+                stand.despawnWithCleanup();
+            }
             return;
         }
 
@@ -271,6 +361,54 @@ public class GestaltNetworking {
         stand.setOwner(player);
 
         // Load persisted values from player
+        IGestaltPlayer gp = (IGestaltPlayer) player;
+        net.minecraft.util.Identifier id = stand.getGestaltId();
+        stand.setStamina(gp.gestaltresonance$getGestaltStamina(id));
+        stand.setExp(gp.gestaltresonance$getGestaltExp(id));
+        stand.setLvl(gp.gestaltresonance$getGestaltLvl(id));
+
+        stand.refreshPositionAndAngles(spawnX, spawnY, spawnZ, yaw, 0.0f);
+        world.spawnEntity(stand);
+    }
+
+    private static void toggleSpillways(ServerPlayerEntity player) {
+        ServerWorld world = player.getServerWorld();
+
+        List<net.ragdot.gestaltresonance.entities.Spillways> stands = world.getEntitiesByClass(
+                net.ragdot.gestaltresonance.entities.Spillways.class,
+                player.getBoundingBox().expand(256.0),
+                stand -> {
+                    var uuid = stand.getOwnerUuid();
+                    return uuid != null && uuid.equals(player.getUuid());
+                }
+        );
+
+        if (!stands.isEmpty()) {
+            for (net.ragdot.gestaltresonance.entities.Spillways stand : stands) {
+                stand.despawnWithCleanup();
+            }
+            return;
+        }
+
+        float yaw = player.getYaw();
+        double rad = Math.toRadians(yaw);
+
+        double backOffset = 1.9;
+        double sideOffset = 0.5;
+        double heightOffset = 0.4;
+
+        double backX = -Math.sin(rad);
+        double backZ =  Math.cos(rad);
+        double rightX =  Math.cos(rad);
+        double rightZ =  Math.sin(rad);
+
+        double spawnX = player.getX() + backOffset * backX + sideOffset * rightX;
+        double spawnZ = player.getZ() + backOffset * backZ + sideOffset * rightZ;
+        double spawnY = player.getY() + heightOffset;
+
+        net.ragdot.gestaltresonance.entities.Spillways stand = new net.ragdot.gestaltresonance.entities.Spillways(Gestaltresonance.SPILLWAYS, world);
+        stand.setOwner(player);
+
         IGestaltPlayer gp = (IGestaltPlayer) player;
         net.minecraft.util.Identifier id = stand.getGestaltId();
         stand.setStamina(gp.gestaltresonance$getGestaltStamina(id));

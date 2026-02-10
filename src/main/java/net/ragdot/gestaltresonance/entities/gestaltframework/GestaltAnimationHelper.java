@@ -28,9 +28,10 @@ public class GestaltAnimationHelper {
     public void updateAnimationStates() {
         if (gestalt.getWorld().isClient) {
             boolean anyOtherAnimationRunning = false;
+            IGestaltPlayer gp = (IGestaltPlayer) gestalt.getOwner();
 
             // Guard animation
-            if (gestalt.getDataTracker().get(GestaltBase.IS_GUARDING)) {
+            if (gp != null && gp.gestaltresonance$isGuarding()) {
                 this.guardAnimationState.startIfNotRunning(gestalt.age);
                 anyOtherAnimationRunning = true;
             } else {
@@ -38,7 +39,7 @@ public class GestaltAnimationHelper {
             }
 
             // Grab animation
-            if (gestalt.getDataTracker().get(GestaltBase.IS_GRABBING)) {
+            if (gp != null && gp.gestaltresonance$isLedgeGrabbing()) {
                 this.grabAnimationState.startIfNotRunning(gestalt.age);
                 anyOtherAnimationRunning = true;
             } else {
@@ -46,7 +47,7 @@ public class GestaltAnimationHelper {
             }
 
             // Throw animation
-            if (gestalt.getDataTracker().get(GestaltBase.IS_THROWING)) {
+            if (gp != null && gp.gestaltresonance$isGestaltThrowActive()) {
                 this.throwAnimationState.startIfNotRunning(gestalt.age);
                 anyOtherAnimationRunning = true;
             } else {

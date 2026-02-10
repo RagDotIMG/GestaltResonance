@@ -3,6 +3,9 @@ import net.ragdot.gestaltresonance.entities.gestaltframework.GestaltBase;
 
 
 import net.minecraft.entity.EntityType;
+import net.minecraft.entity.attribute.EntityAttributeInstance;
+import net.minecraft.entity.attribute.EntityAttributeModifier;
+import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.data.DataTracker;
 import net.minecraft.entity.data.TrackedData;
 import net.minecraft.entity.data.TrackedDataHandlerRegistry;
@@ -11,17 +14,21 @@ import net.minecraft.entity.mob.HostileEntity;
 import net.minecraft.entity.attribute.DefaultAttributeContainer;
 import net.minecraft.particle.EntityEffectParticleEffect;
 import net.minecraft.particle.ParticleTypes;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.ragdot.gestaltresonance.effect.ModStatusEffects;
 
 import net.ragdot.gestaltresonance.util.IGestaltPlayer;
 import java.util.List;
+import java.util.UUID;
 
 public class ScorchedUtopia extends GestaltBase {
     protected static final TrackedData<Boolean> IS_AURA_ACTIVE = DataTracker.registerData(ScorchedUtopia.class, TrackedDataHandlerRegistry.BOOLEAN);
 
     private int auraActiveTicks = 0;
+    private static final Identifier ARMOR_BUFF_ID = Identifier.of("gestaltresonance", "scorched_utopia_passive_armor");
 
     public ScorchedUtopia(EntityType<? extends ScorchedUtopia> type, World world) {
         super(type, world);
@@ -72,6 +79,33 @@ public class ScorchedUtopia extends GestaltBase {
             if (!this.getWorld().isClient) {
                 auraActiveTicks = 0;
             }
+        }
+    }
+
+    @Override
+    protected void applyOwnerPassiveBuffs(PlayerEntity owner) {
+        // Grant +2 armor while Scorched Utopia is active by ensuring an attribute modifier is present.
+        if (owner == null || owner.getWorld().isClient) return;
+
+        EntityAttributeInstance armor = owner.getAttributeInstance(EntityAttributes.GENERIC_ARMOR);
+        if (armor == null) return;
+
+        // If missing, add our +2 armor modifier (flat addition)
+        if (armor.getModifier(ARMOR_BUFF_ID) == null) {
+            armor.addPersistentModifier(new EntityAttributeModifier(ARMOR_BUFF_ID, 2.0, EntityAttributeModifier.Operation.ADD_VALUE));
+        }
+    }
+
+    @Override
+    protected void clearOwnerPassiveBuffs(PlayerEntity owner) {
+        // Be resilient: resolve owner lazily if not provided at removal time
+        if (owner == null) {
+            owner = this.getOwner();
+        }
+        if (owner == null || owner.getWorld().isClient) return;
+        EntityAttributeInstance armor = owner.getAttributeInstance(EntityAttributes.GENERIC_ARMOR);
+        if (armor != null && armor.getModifier(ARMOR_BUFF_ID) != null) {
+            armor.removeModifier(ARMOR_BUFF_ID);
         }
     }
 

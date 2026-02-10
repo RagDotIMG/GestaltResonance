@@ -10,7 +10,7 @@ public class ModItems {
     public static final Item POKEY_FEATHER = registerItem("pokey_feather", new PokeyFeatherItem(new Item.Settings()));
     public static final Item ROTTEN_FEATHER = registerItem("rotten_feather", new RottenFeatherItem(new Item.Settings()));
     public static final Item BLASTED_FEATHER = registerItem("blasted_feather", new BlastedFeatherItem(new Item.Settings()));
-    public static final Item INKED_FEATHER = registerItem("inked_feather", new Item(new Item.Settings()));
+    public static final Item INKED_FEATHER = registerItem("inked_feather", new InkedFeatherItem(new Item.Settings()));
     public static final Item RESONANT_DUST = registerItem("resonant_dust", new Item(new Item.Settings()));
     public static final Item NETHER_TEAR = registerItem("nether_tear", new NetherTearItem(new Item.Settings()));
     public static final Item RESONANT_FLESH = registerItem("resonant_flesh", new Item(new Item.Settings()));

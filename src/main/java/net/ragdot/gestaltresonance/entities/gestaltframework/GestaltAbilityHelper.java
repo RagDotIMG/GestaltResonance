@@ -19,13 +19,7 @@ public class GestaltAbilityHelper {
 
         IGestaltPlayer gestaltPlayer = (IGestaltPlayer) owner;
 
-        if (gestalt.getWorld().isClient) {
-            // Client-side: update IS_THROWING from local owner state for zero-latency animation
-            boolean isThrowing = gestaltPlayer.gestaltresonance$isGestaltThrowActive();
-            if (gestalt.getDataTracker().get(GestaltBase.IS_THROWING) != isThrowing) {
-                gestalt.getDataTracker().set(GestaltBase.IS_THROWING, isThrowing);
-            }
-        } else {
+        if (!gestalt.getWorld().isClient) {
             // Server-side
             if (gestaltPlayer.gestaltresonance$isLedgeGrabbing()) {
                 owner.setVelocity(Vec3d.ZERO);
@@ -39,12 +33,6 @@ public class GestaltAbilityHelper {
             // Blocking logic for Guard Mode
             if (gestaltPlayer.gestaltresonance$isGuarding()) {
                 blockProjectilesAndEntities();
-            }
-
-            // Sync throw state to client
-            boolean isThrowing = gestaltPlayer.gestaltresonance$isGestaltThrowActive();
-            if (gestalt.getDataTracker().get(GestaltBase.IS_THROWING) != isThrowing) {
-                gestalt.getDataTracker().set(GestaltBase.IS_THROWING, isThrowing);
             }
         }
     }

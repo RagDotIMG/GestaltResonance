@@ -1,32 +1,5 @@
 /gamemode creative
 /gamemode survival
-/time set day
-/gamemode creative
-/gamemode survival
-/gamemode creative
-/gamemode survival
-/gamemode creative
-/gamemode survival
-/gamemode creative
-/time set day
-/gamemode survival
-/gamemode creative
-/gamemode survival
-/time set night
-/time set day
-/gamemode creative
-/gamemode survival
-/time set day
-/gamemode creative
-/gamemode survival
-/gamemode creative
-/gamemode survival
-/gamemode creative
-/gamemode survival
-/gamemode creative
-/gamemode survival
-/gamemode creative
-/gamemode survival
 /gamemode creative
 /gamemode survival
 /gamemode creative
@@ -47,4 +20,31 @@
 /give Player685 minecraft:gunpowder
 /give Player685 minecraft:ink_sac
 /summonStand
+/time set day
+/gamemode creative
+/gamemode survival
+/gamemode creative
+/gamemode survival
+/gamemode creative
+/gamemode survival
+/time set day
+/give item gestaltresonance:inked_feather 2
+/give Player691 gestaltresonance:inked_feather 2
+/give
+/give Player559 gestaltresonance:inked_feather 2
+/give Player559 gestaltresonance:rotten_feather 2
+/give Player505 gestaltresonance:rotten_feather 2
+/give Player505 gestaltresonance:blasted_feather 2
+/give Player966 gestaltresonance:blasted_feather 2
+/give Player416 gestaltresonance:inked_feather 2
+/time set day
+/gamemode creative
+/gamemode survival
+/gamemode creative
+/time set day
+/gamemode survival
+/gamemode creative
+/gamemode survival
+/time set day
+/gamemode creative
 /time set day

@@ -32,4 +32,8 @@ public interface IGestaltPlayer {
     int gestaltresonance$getGestaltLvl(net.minecraft.util.Identifier id);
 
     void gestaltresonance$resetAllGestaltData();
+
+    // Amen Break passive: muffled movement (suppress vibration/footstep events)
+    void gestaltresonance$setMuffledMovementActive(boolean active);
+    boolean gestaltresonance$isMuffledMovementActive();
 }

@@ -26,15 +26,16 @@ public class GestaltBase extends MobEntity {
     protected static final TrackedData<Optional<UUID>> OWNER_UUID = DataTracker.registerData(GestaltBase.class, TrackedDataHandlerRegistry.OPTIONAL_UUID);
     protected static final TrackedData<Integer> TARGET_ID = DataTracker.registerData(GestaltBase.class, TrackedDataHandlerRegistry.INTEGER);
     protected static final TrackedData<Boolean> IS_ATTACKING = DataTracker.registerData(GestaltBase.class, TrackedDataHandlerRegistry.BOOLEAN);
-    protected static final TrackedData<Boolean> IS_THROWING = DataTracker.registerData(GestaltBase.class, TrackedDataHandlerRegistry.BOOLEAN);
     protected static final TrackedData<Boolean> IS_WINDING_UP = DataTracker.registerData(GestaltBase.class, TrackedDataHandlerRegistry.BOOLEAN);
     protected static final TrackedData<Boolean> IS_PUNCHING = DataTracker.registerData(GestaltBase.class, TrackedDataHandlerRegistry.BOOLEAN);
-    protected static final TrackedData<Boolean> IS_GUARDING = DataTracker.registerData(GestaltBase.class, TrackedDataHandlerRegistry.BOOLEAN);
-    protected static final TrackedData<Boolean> IS_GRABBING = DataTracker.registerData(GestaltBase.class, TrackedDataHandlerRegistry.BOOLEAN);
     protected static final TrackedData<Float> STAMINA = DataTracker.registerData(GestaltBase.class, TrackedDataHandlerRegistry.FLOAT);
     protected static final TrackedData<Float> GUARD_REDUCTION = DataTracker.registerData(GestaltBase.class, TrackedDataHandlerRegistry.FLOAT);
     protected static final TrackedData<Integer> EXP = DataTracker.registerData(GestaltBase.class, TrackedDataHandlerRegistry.INTEGER);
     protected static final TrackedData<Integer> LVL = DataTracker.registerData(GestaltBase.class, TrackedDataHandlerRegistry.INTEGER);
+    // Sync flag for client to know when server-authoritative guard dash is active
+    protected static final TrackedData<Boolean> IS_GUARD_DASHING = DataTracker.registerData(GestaltBase.class, TrackedDataHandlerRegistry.BOOLEAN);
+    // Sync flag for client to know when we are frozen at post-dash hit position (to let Punch play)
+    protected static final TrackedData<Boolean> IS_POST_DASH_STICKING = DataTracker.registerData(GestaltBase.class, TrackedDataHandlerRegistry.BOOLEAN);
 
     protected PlayerEntity owner;
     protected UUID ownerUuid;
@@ -52,9 +53,20 @@ public class GestaltBase extends MobEntity {
     protected int windUpTicks = 0;
     protected int guardingTicks = 0;
     protected int staminaRegenDelay = 0;
-    
+
     // Smooth movement state
     private static final double SMOOTH_FACTOR = 0.1; // How much to move towards target each tick (0.0 to 1.0)
+
+    // Guard dash ability state
+    private boolean guardDashActive = false;
+    private double guardDashDistanceLeft = 0.0;
+    private Vec3d guardDashDirection = Vec3d.ZERO;
+    private boolean guardDashHitDone = false;
+
+    // Post-dash stick (freeze in place to display punch animation)
+    private boolean postDashStickActive = false;
+    private int postDashStickTicksLeft = 0;
+    private Vec3d postDashStickPos = Vec3d.ZERO;
 
     public GestaltBase(EntityType<? extends MobEntity> type, World world) {
         super(type, world);
@@ -68,15 +80,14 @@ public class GestaltBase extends MobEntity {
         builder.add(OWNER_UUID, Optional.empty());
         builder.add(TARGET_ID, -1);
         builder.add(IS_ATTACKING, false);
-        builder.add(IS_THROWING, false);
         builder.add(IS_WINDING_UP, false);
         builder.add(IS_PUNCHING, false);
-        builder.add(IS_GUARDING, false);
-        builder.add(IS_GRABBING, false);
         builder.add(STAMINA, 26.0f);
         builder.add(GUARD_REDUCTION, 0.0f);
         builder.add(EXP, 0);
         builder.add(LVL, 1);
+        builder.add(IS_GUARD_DASHING, false);
+        builder.add(IS_POST_DASH_STICKING, false);
     }
 
     // ===== Shared attributes =====
@@ -180,7 +191,7 @@ public class GestaltBase extends MobEntity {
     }
 
     public int getMaxExp() {
-        return 117;
+        return 120;
     }
 
     protected void updateStamina() {
@@ -306,6 +317,9 @@ public class GestaltBase extends MobEntity {
 
         if (!this.getWorld().isClient) {
             if (owner == null || !owner.isAlive()) {
+                try {
+                    clearOwnerPassiveBuffs(owner);
+                } catch (Throwable ignored) {}
                 this.discard();
                 return;
             }
@@ -314,18 +328,30 @@ public class GestaltBase extends MobEntity {
             Identifier assigned = GestaltAssignments.getAssignedGestalt(owner);
             Identifier thisId = net.minecraft.registry.Registries.ENTITY_TYPE.getId(this.getType());
             if (assigned == null || !assigned.equals(thisId)) {
+                try {
+                    clearOwnerPassiveBuffs(owner);
+                } catch (Throwable ignored) {}
                 this.discard();
                 return;
             }
 
-            updateOwnerFollowAndCombat();
+            // Apply any passive buffs this Gestalt grants to its owner while active
+            try {
+                applyOwnerPassiveBuffs(owner);
+            } catch (Throwable ignored) {
+                // Never let passive buff logic crash the entity tick
+            }
+
+            // If guard-dash is active, override normal follow/combat and update dash movement
+            if (guardDashActive) {
+                updateGuardDash();
+            } else if (postDashStickActive) {
+                updatePostDashStick();
+            } else {
+                updateOwnerFollowAndCombat();
+            }
             updateStamina();
 
-            // Sync throw state
-            if (this.dataTracker.get(IS_THROWING) != (((IGestaltPlayer) owner).gestaltresonance$isGestaltThrowActive())) {
-                this.dataTracker.set(IS_THROWING, ((IGestaltPlayer) owner).gestaltresonance$isGestaltThrowActive());
-            }
-            
             // Sync target to client
             int targetId = currentTarget != null ? currentTarget.getId() : -1;
             if (this.dataTracker.get(TARGET_ID) != targetId) {
@@ -345,17 +371,6 @@ public class GestaltBase extends MobEntity {
             if (this.dataTracker.get(IS_PUNCHING) != (punchingTicks > 0)) {
                 this.dataTracker.set(IS_PUNCHING, punchingTicks > 0);
             }
-
-            // Sync guarding and grabbing states from owner
-            IGestaltPlayer gp = (IGestaltPlayer) owner;
-            boolean ownerGuarding = gp.gestaltresonance$isGuarding();
-            boolean ownerGrabbing = gp.gestaltresonance$isLedgeGrabbing();
-            if (this.dataTracker.get(IS_GUARDING) != ownerGuarding) {
-                this.dataTracker.set(IS_GUARDING, ownerGuarding);
-            }
-            if (this.dataTracker.get(IS_GRABBING) != ownerGrabbing) {
-                this.dataTracker.set(IS_GRABBING, ownerGrabbing);
-            }
         } else {
             // Client-side: sync target and attack state from data tracker
             int targetId = this.dataTracker.get(TARGET_ID);
@@ -372,23 +387,272 @@ public class GestaltBase extends MobEntity {
                 }
             }
 
-            // Always update position to keep it in sync
+            // Positioning rule:
+            // - Local player's Gestalt: keep client-side positioning unchanged (smooth and affixed to player model).
+            // - Other players' Gestalts: do NOT override position client-side; rely on server-authoritative entity updates
+            //   so everyone sees the same position/animations.
             if (owner != null && owner.isAlive()) {
-                IGestaltPlayer gp = (IGestaltPlayer) owner;
-                boolean isGuarding = gp.gestaltresonance$isGuarding();
-                
-                if (canMeleeAttack() && currentTarget != null && currentTarget.isAlive() && !isGuarding) {
-                    // Check if target is in range of owner on client too to avoid weird snaps
-                    double maxRange = getMaxChaseRange();
-                    if (owner.squaredDistanceTo(currentTarget) <= maxRange * maxRange && isAttacking) {
-                        moveNearMeleeTarget();
-                    } else {
-                        updatePositionToOwner();
+                // Determine if this owner is the local client player
+                boolean isLocalOwner = false;
+                try {
+                    net.minecraft.client.MinecraftClient mc = net.minecraft.client.MinecraftClient.getInstance();
+                    isLocalOwner = (mc != null && mc.player != null && owner.getId() == mc.player.getId());
+                } catch (Throwable ignored) {
+                    // In any unexpected context, default to not treating as local to avoid client-side overrides
+                    isLocalOwner = false;
+                }
+
+                if (isLocalOwner) {
+                    // During server-authoritative guard dash or post-dash stick, do not client-side reposition.
+                    boolean isGuardDash = this.dataTracker.get(IS_GUARD_DASHING);
+                    boolean isSticking = this.dataTracker.get(IS_POST_DASH_STICKING);
+                    if (!isGuardDash && !isSticking) {
+                        IGestaltPlayer gp = (IGestaltPlayer) owner;
+                        boolean isGuarding = gp.gestaltresonance$isGuarding();
+
+                        if (canMeleeAttack() && currentTarget != null && currentTarget.isAlive() && !isGuarding) {
+                            // Check if target is in range of owner on client too to avoid weird snaps
+                            double maxRange = getMaxChaseRange();
+                            if (owner.squaredDistanceTo(currentTarget) <= maxRange * maxRange && isAttacking) {
+                                moveNearMeleeTarget();
+                            } else {
+                                updatePositionToOwner();
+                            }
+                        } else {
+                            updatePositionToOwner();
+                        }
                     }
-                } else {
-                    updatePositionToOwner();
+                }
+                // else: remote owner's Gestalt → let server-set position interpolate; no client-side repositioning
+            }
+        }
+    }
+
+    @Override
+    public void onRemoved() {
+        // Ensure passive buffs are always cleared when the Gestalt is removed by any means
+        if (!this.getWorld().isClient) {
+            try {
+                // Resolve owner lazily in case the field is null at removal time
+                clearOwnerPassiveBuffs(this.getOwner());
+            } catch (Throwable ignored) {
+            }
+        }
+        super.onRemoved();
+    }
+
+    /**
+     * Public helper to reliably remove any owner-bound passive buffs and then discard this entity.
+     * Use this instead of calling {@code discard()} directly when unsummoning.
+     */
+    public void despawnWithCleanup() {
+        if (!this.getWorld().isClient) {
+            try {
+                clearOwnerPassiveBuffs(this.getOwner());
+            } catch (Throwable ignored) {
+            }
+        }
+        this.discard();
+    }
+
+    /**
+     * Hook for subclasses to apply passive, continuous buffs to the owner while this Gestalt is active.
+     * Called server-side every tick after ownership/assignment validation. Default no-op.
+     */
+    protected void applyOwnerPassiveBuffs(PlayerEntity owner) {
+        // default: none
+    }
+
+    /**
+     * Hook for subclasses to clear any previously applied passive buffs from the owner
+     * right before this Gestalt is discarded or deactivated. Default no-op.
+     */
+    protected void clearOwnerPassiveBuffs(PlayerEntity owner) {
+        // default: none
+    }
+
+    // ===== Guard Dash Punch ability =====
+    protected double getGuardDashRange() { return 10.0; }
+    protected double getGuardDashSpeed() { return 0.3; }
+    protected float getGuardDashDamageMultiplier() { return 3.0f; }
+    protected int getGuardDashStickTicks() { return 20; }
+    protected double getGuardDashAutoAimRadius() { return 2.0; }
+
+    public void startGuardDashPunch() {
+        if (this.getWorld().isClient) return;
+        PlayerEntity owner = getOwner();
+        if (owner == null) return;
+        // Safety: require sufficient stamina and not already dashing
+        if (this.getStamina() < 12.0f || this.guardDashActive) return;
+
+        // Determine dash direction using the player's full look vector (includes pitch & yaw)
+        Vec3d look = owner.getRotationVector();
+        if (look.lengthSquared() == 0) {
+            // Fallback to horizontal forward if somehow zero
+            float yaw = owner.getYaw();
+            double rad = Math.toRadians(yaw);
+            double dx = -Math.sin(rad);
+            double dz = Math.cos(rad);
+            guardDashDirection = new Vec3d(dx, 0, dz).normalize();
+        } else {
+            guardDashDirection = look.normalize();
+        }
+        guardDashDistanceLeft = getGuardDashRange();
+        guardDashActive = true;
+        guardDashHitDone = false;
+        this.dataTracker.set(IS_GUARD_DASHING, true);
+
+        // Initialize animation timers: drive via timers so data tracker sync remains authoritative
+        // Start WindUp for dash duration; ensure no active punch
+        this.windUpTicks = 1;
+        this.punchingTicks = 0;
+
+        // Ensure we are not considered guarding for movement rules
+        IGestaltPlayer gp = (IGestaltPlayer) owner;
+        gp.gestaltresonance$setGuarding(false);
+    }
+
+    private void stopGuardDash() {
+        guardDashActive = false;
+        guardDashDistanceLeft = 0.0;
+        guardDashDirection = Vec3d.ZERO;
+        if (!this.getWorld().isClient) {
+            this.dataTracker.set(IS_GUARD_DASHING, false);
+        }
+        // Let timer-based sync clear/maintain animation flags; do not force-stop here.
+    }
+
+    private void updateGuardDash() {
+        if (this.getWorld().isClient) return;
+        if (!guardDashActive) return;
+
+        // Move a step forward
+        double step = Math.min(getGuardDashSpeed(), guardDashDistanceLeft);
+        Vec3d current = this.getPos();
+        // Auto-aim steering: if a valid entity is very close, steer toward it so we can land the hit
+        {
+            double aimRadius = getGuardDashAutoAimRadius();
+            List<LivingEntity> closeEntities = this.getWorld().getEntitiesByClass(
+                    LivingEntity.class,
+                    this.getBoundingBox().expand(aimRadius),
+                    e -> e.isAlive() && e != this && e != this.getOwner()
+            );
+            if (!closeEntities.isEmpty()) {
+                LivingEntity closest = null;
+                double closestDistSq = Double.MAX_VALUE;
+                for (LivingEntity le : closeEntities) {
+                    double d2 = le.squaredDistanceTo(this);
+                    if (d2 < closestDistSq) {
+                        closestDistSq = d2;
+                        closest = le;
+                    }
+                }
+                if (closest != null && closestDistSq <= aimRadius * aimRadius) {
+                    Vec3d targetPos = closest.getPos().add(0, Math.max(0.3, closest.getHeight() * 0.5), 0);
+                    Vec3d toTarget = targetPos.subtract(current);
+                    if (toTarget.lengthSquared() > 1.0E-6) {
+                        guardDashDirection = toTarget.normalize();
+                    }
                 }
             }
+        }
+        Vec3d next = current.add(guardDashDirection.multiply(step));
+
+        // Face movement direction (update yaw & pitch to align with dash vector)
+        double horizLen = Math.sqrt(guardDashDirection.x * guardDashDirection.x + guardDashDirection.z * guardDashDirection.z);
+        float faceYaw = (float)(Math.toDegrees(Math.atan2(guardDashDirection.z, guardDashDirection.x)) - 90.0);
+        float facePitch = (float)Math.toDegrees(Math.atan2(-guardDashDirection.y, horizLen));
+        this.setYaw(faceYaw);
+        this.setHeadYaw(faceYaw);
+        this.bodyYaw = faceYaw;
+        this.prevYaw = faceYaw;
+        this.prevHeadYaw = faceYaw;
+        this.prevBodyYaw = faceYaw;
+        this.setPitch(facePitch);
+
+        // Precise entity collision via raycast along the dash segment
+        net.minecraft.util.hit.EntityHitResult entityHit = net.minecraft.entity.projectile.ProjectileUtil.getEntityCollision(
+                this.getWorld(),
+                this,
+                current,
+                next,
+                this.getBoundingBox().expand(0.2),
+                e -> e instanceof LivingEntity && e.isAlive() && e != this && e != this.getOwner() && ((LivingEntity)e).hurtTime <= 0,
+                (float) step
+        );
+
+        if (entityHit != null && entityHit.getEntity() instanceof LivingEntity target) {
+            // Snap to hit position for visual accuracy
+            Vec3d hitPos = entityHit.getPos();
+            if (hitPos != null) {
+                this.refreshPositionAfterTeleport(hitPos);
+            } else {
+                this.refreshPositionAfterTeleport(next);
+            }
+
+            float damage = getAttackDamage() * getGuardDashDamageMultiplier();
+            target.damage(this.getDamageSources().mobAttack(this), damage);
+
+            // On successful hit: drain 12 stamina and grant 2 EXP
+            this.setStamina(this.getStamina() - 12.0f);
+            this.setExp(this.getExp() + 2);
+
+            // Transition animations via timers: stop WindUp and start Punch
+            this.windUpTicks = 0;
+            // Stick in place for full animation visibility
+            this.punchingTicks = Math.max(this.punchingTicks, getGuardDashStickTicks());
+
+            // Begin post-dash stick phase at the exact hit position
+            this.postDashStickPos = this.getPos();
+            this.postDashStickTicksLeft = getGuardDashStickTicks();
+            this.postDashStickActive = true;
+            this.dataTracker.set(IS_POST_DASH_STICKING, true);
+
+            guardDashHitDone = true;
+            stopGuardDash();
+            return;
+        }
+
+        // No hit: advance position along the path
+        // Move with no gravity, allow noclip through blocks as Gestalts already do; rely on stop conditions
+        this.refreshPositionAfterTeleport(next);
+
+        guardDashDistanceLeft -= step;
+
+        // Drive WindUp timer while dashing so client animates
+        if (this.windUpTicks < Integer.MAX_VALUE) {
+            this.windUpTicks++;
+        }
+
+        // Stop if we reached max distance
+        if (guardDashDistanceLeft <= 0.0) {
+            // End of dash with no hit: stop WindUp
+            this.windUpTicks = 0;
+            stopGuardDash();
+        }
+    }
+
+    private void updatePostDashStick() {
+        if (this.getWorld().isClient) return;
+        if (!postDashStickActive) return;
+
+        // Keep Gestalt frozen at the recorded hit position
+        this.refreshPositionAfterTeleport(postDashStickPos);
+
+        // Drive punch animation timer during stick phase
+        if (this.punchingTicks > 0) {
+            this.punchingTicks--;
+        }
+
+        // Countdown stick phase
+        if (postDashStickTicksLeft > 0) {
+            postDashStickTicksLeft--;
+        }
+
+        if (postDashStickTicksLeft <= 0) {
+            postDashStickActive = false;
+            this.dataTracker.set(IS_POST_DASH_STICKING, false);
+            // End of stick: allow normal follow/combat to resume next tick
         }
     }
 
@@ -637,11 +901,33 @@ public class GestaltBase extends MobEntity {
             return player.getEyePos();
         }
 
-        // Center of the block the player is grabbing
-        Vec3d blockCenter = Vec3d.ofCenter(ledgePos);
-        
-        // Position the stand slightly below the block center
-        return blockCenter.subtract(1.7, 1.8, 0.2);
+        // Default to top center of the ledge block
+        double baseX = ledgePos.getX() + 0.5;
+        double baseY = ledgePos.getY() + 1.0; // top surface of the ledge block
+        double baseZ = ledgePos.getZ() + 0.5;
+
+        // Determine player facing to push slightly away from wall if side is unknown here
+        float yaw = player.getYaw();
+        double rad = Math.toRadians(yaw);
+        double lookX = -Math.sin(rad);
+        double lookZ = Math.cos(rad);
+
+        // Outset from wall edge so the Gestalt doesn’t clip into the block
+        double edgeOutset = 0.25; // configurable if needed
+        double outX = baseX + lookX * edgeOutset;
+        double outZ = baseZ + lookZ * edgeOutset;
+
+        // Vertical placement relative to the top surface:
+        // If the top is above eye height (3-block case), reduce the drop so it doesn’t look too low.
+        double eyeY = player.getEyeY();
+        double delta = baseY - eyeY; // how far above eyes the top is (can be negative)
+        // Desired hang offset below the top. Clamp between 0.9 and 1.4 blocks.
+        double desiredHangOffset = 1.2 - Math.max(0.0, Math.min(delta, 1.5)) * 0.2; // slight reduction when top is high
+        desiredHangOffset = Math.max(0.9, Math.min(desiredHangOffset, 1.4));
+
+        double outY = baseY - desiredHangOffset;
+
+        return new Vec3d(outX, outY, outZ);
     }
 
     public static float getLedgeGrabYaw(net.minecraft.util.math.BlockPos ledgePos, net.minecraft.util.math.Direction ledgeSide) {
@@ -649,6 +935,37 @@ public class GestaltBase extends MobEntity {
             return ledgeSide.getOpposite().asRotation();
         }
         return 0; // Should ideally not happen if ledgeSide is provided
+    }
+
+    /**
+     * Immediately snap the Gestalt to the guarding position in front of its owner,
+     * matching the owner's yaw. Used when guard mode is toggled on to avoid smooth
+     * interpolation from the previous position.
+     */
+    public void snapToGuardPosition() {
+        if (owner == null) return;
+
+        double playerX = owner.getX();
+        double playerY = owner.getY();
+        double playerZ = owner.getZ();
+        float yaw = owner.getYaw();
+
+        double heightOffset = getHeightOffset();
+
+        double frontOffset = 0.8;
+        double rad = Math.toRadians(yaw);
+        double frontX = -Math.sin(rad);
+        double frontZ = Math.cos(rad);
+
+        double targetX = playerX + frontOffset * frontX;
+        double targetZ = playerZ + frontOffset * frontZ;
+        double targetY = playerY + heightOffset - 0.5;
+
+        // Teleport/snap to position and align yaw instantly
+        this.refreshPositionAndAngles(targetX, targetY, targetZ, yaw, this.getPitch());
+        this.setHeadYaw(yaw);
+        this.setBodyYaw(yaw);
+        this.setVelocity(Vec3d.ZERO);
     }
 
     // ===== Following behavior (can be overridden per stand) =====
@@ -664,7 +981,7 @@ public class GestaltBase extends MobEntity {
         IGestaltPlayer gp = (IGestaltPlayer) owner;
         boolean isGuarding = gp.gestaltresonance$isGuarding();
         boolean isLedgeGrabbing = gp.gestaltresonance$isLedgeGrabbing();
-        boolean isThrowing = this.dataTracker.get(IS_THROWING);
+        boolean isThrowing = gp.gestaltresonance$isGestaltThrowActive();
 
         if (isThrowing) {
             // Throw mode: Directly behind the player
@@ -685,10 +1002,36 @@ public class GestaltBase extends MobEntity {
             net.minecraft.util.math.BlockPos ledgePos = gp.gestaltresonance$getLedgeGrabPos();
             net.minecraft.util.math.Direction ledgeSide = gp.gestaltresonance$getLedgeGrabSide();
 
-            Vec3d targetPos = getLedgeGrabPosition(owner, ledgePos);
-            float targetYaw = getLedgeGrabYaw(ledgePos, ledgeSide);
+            if (ledgePos != null && ledgeSide != null && ledgeSide.getAxis().isHorizontal()) {
+                // Fixed snap to block face (no smoothing)
+                // Adjust these if you want to tweak spacing/height:
+                final double distanceFromFace = 1.2; // blocks away from the block face (user-requested approx)
+                final double verticalDrop = 2.4;     // blocks below the top of the block (user-requested approx)
 
-            applySmoothPosition(targetPos.x, targetPos.y, targetPos.z, targetYaw, false);
+                // Block center and normal of the face we are grabbing
+                Vec3d center = new Vec3d(ledgePos.getX() + 0.5, ledgePos.getY() + 0.5, ledgePos.getZ() + 0.5);
+                Vec3d normal = Vec3d.of(ledgeSide.getVector()); // points outward from the face we hit
+
+                // From block center to the face plane is 0.5; we then go an extra `distanceFromFace` beyond it
+                double faceOffsetFromCenter = 0.5 + distanceFromFace; // == 1.0 when distanceFromFace == 0.5
+
+                double outX = center.x + normal.x * faceOffsetFromCenter;
+                double outZ = center.z + normal.z * faceOffsetFromCenter;
+                double outY = ledgePos.getY() + 1.0 - verticalDrop; // slightly below block top
+
+                float targetYaw = ledgeSide.getOpposite().asRotation(); // face toward the block
+
+                // Hard snap (no smoothing) and align rotation
+                this.refreshPositionAndAngles(outX, outY, outZ, targetYaw, this.getPitch());
+                this.setHeadYaw(targetYaw);
+                this.setBodyYaw(targetYaw);
+                this.setVelocity(Vec3d.ZERO);
+            } else {
+                // Fallback to previous behavior if data missing
+                Vec3d targetPos = getLedgeGrabPosition(owner, ledgePos);
+                float targetYaw = getLedgeGrabYaw(ledgePos, ledgeSide);
+                applySmoothPosition(targetPos.x, targetPos.y, targetPos.z, targetYaw, false);
+            }
             return;
         }
 

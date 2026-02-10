@@ -8,6 +8,7 @@ import net.minecraft.registry.Registry;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.ragdot.gestaltresonance.Gestaltresonance;
+import net.ragdot.gestaltresonance.block.ModBlocks;
 
 public class ModItemGroups {
     public static final ItemGroup GESTALT_RESONANCE_GROUP = Registry.register(Registries.ITEM_GROUP,
@@ -26,6 +27,7 @@ public class ModItemGroups {
                         entries.add(ModItems.ROTTEN_ESSENCE);
                         entries.add(ModItems.INKED_ESSENCE);
                         entries.add(ModItems.BLASTED_ESSENCE);
+                        // Pop Sprout no longer exposed in creative tab for testing
                     }).build());
 
     public static void registerItemGroups() {

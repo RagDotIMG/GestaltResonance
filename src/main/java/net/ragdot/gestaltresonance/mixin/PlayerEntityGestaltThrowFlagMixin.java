@@ -4,30 +4,39 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.ragdot.gestaltresonance.util.IGestaltPlayer;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
+import org.spongepowered.asm.mixin.injection.At;
 
 @Mixin(PlayerEntity.class)
 public class PlayerEntityGestaltThrowFlagMixin implements IGestaltPlayer {
 
     @Unique
-    private boolean gestaltresonance$gestaltThrowActive = false;
-
+    private static final net.minecraft.entity.data.TrackedData<Boolean> GESTALT_THROW_ACTIVE = net.minecraft.entity.data.DataTracker.registerData(PlayerEntity.class, net.minecraft.entity.data.TrackedDataHandlerRegistry.BOOLEAN);
     @Unique
-    private boolean gestaltresonance$guarding = false;
-
+    private static final net.minecraft.entity.data.TrackedData<Boolean> GUARDING = net.minecraft.entity.data.DataTracker.registerData(PlayerEntity.class, net.minecraft.entity.data.TrackedDataHandlerRegistry.BOOLEAN);
     @Unique
-    private boolean gestaltresonance$ledgeGrabbing = false;
-
+    private static final net.minecraft.entity.data.TrackedData<Boolean> LEDGE_GRABBING = net.minecraft.entity.data.DataTracker.registerData(PlayerEntity.class, net.minecraft.entity.data.TrackedDataHandlerRegistry.BOOLEAN);
     @Unique
-    private net.minecraft.util.math.BlockPos gestaltresonance$ledgeGrabPos = null;
-
+    private static final net.minecraft.entity.data.TrackedData<java.util.Optional<net.minecraft.util.math.BlockPos>> LEDGE_GRAB_POS = net.minecraft.entity.data.DataTracker.registerData(PlayerEntity.class, net.minecraft.entity.data.TrackedDataHandlerRegistry.OPTIONAL_BLOCK_POS);
     @Unique
-    private net.minecraft.util.math.Direction gestaltresonance$ledgeGrabSide = null;
+    private static final net.minecraft.entity.data.TrackedData<Integer> LEDGE_GRAB_SIDE = net.minecraft.entity.data.DataTracker.registerData(PlayerEntity.class, net.minecraft.entity.data.TrackedDataHandlerRegistry.INTEGER);
+    @Unique
+    private static final net.minecraft.entity.data.TrackedData<Boolean> REDIRECTION_ACTIVE = net.minecraft.entity.data.DataTracker.registerData(PlayerEntity.class, net.minecraft.entity.data.TrackedDataHandlerRegistry.BOOLEAN);
+    @Unique
+    private static final net.minecraft.entity.data.TrackedData<Boolean> MUFFLED_MOVEMENT_ACTIVE = net.minecraft.entity.data.DataTracker.registerData(PlayerEntity.class, net.minecraft.entity.data.TrackedDataHandlerRegistry.BOOLEAN);
+
+    @org.spongepowered.asm.mixin.injection.Inject(method = "initDataTracker", at = @At("TAIL"))
+    private void gestaltresonance$initGestaltDataTracker(net.minecraft.entity.data.DataTracker.Builder builder, org.spongepowered.asm.mixin.injection.callback.CallbackInfo ci) {
+        builder.add(GESTALT_THROW_ACTIVE, false);
+        builder.add(GUARDING, false);
+        builder.add(LEDGE_GRABBING, false);
+        builder.add(LEDGE_GRAB_POS, java.util.Optional.empty());
+        builder.add(LEDGE_GRAB_SIDE, -1);
+        builder.add(REDIRECTION_ACTIVE, false);
+        builder.add(MUFFLED_MOVEMENT_ACTIVE, false);
+    }
 
     @Unique
     private int gestaltresonance$ledgeGrabCooldown = 0;
-
-    @Unique
-    private boolean gestaltresonance$redirectionActive = false;
 
     @Unique
     private final java.util.Map<net.minecraft.util.Identifier, Float> gestaltresonance$staminaMap = new java.util.HashMap<>();
@@ -40,52 +49,53 @@ public class PlayerEntityGestaltThrowFlagMixin implements IGestaltPlayer {
 
     @Override
     public void gestaltresonance$setGestaltThrowActive(boolean active) {
-        this.gestaltresonance$gestaltThrowActive = active;
+        ((PlayerEntity)(Object)this).getDataTracker().set(GESTALT_THROW_ACTIVE, active);
     }
 
     @Override
     public boolean gestaltresonance$isGestaltThrowActive() {
-        return this.gestaltresonance$gestaltThrowActive;
+        return ((PlayerEntity)(Object)this).getDataTracker().get(GESTALT_THROW_ACTIVE);
     }
 
     @Override
     public void gestaltresonance$setGuarding(boolean guarding) {
-        this.gestaltresonance$guarding = guarding;
+        ((PlayerEntity)(Object)this).getDataTracker().set(GUARDING, guarding);
     }
 
     @Override
     public boolean gestaltresonance$isGuarding() {
-        return this.gestaltresonance$guarding;
+        return ((PlayerEntity)(Object)this).getDataTracker().get(GUARDING);
     }
 
     @Override
     public void gestaltresonance$setLedgeGrabbing(boolean grabbing) {
-        this.gestaltresonance$ledgeGrabbing = grabbing;
+        ((PlayerEntity)(Object)this).getDataTracker().set(LEDGE_GRABBING, grabbing);
     }
 
     @Override
     public boolean gestaltresonance$isLedgeGrabbing() {
-        return this.gestaltresonance$ledgeGrabbing;
+        return ((PlayerEntity)(Object)this).getDataTracker().get(LEDGE_GRABBING);
     }
 
     @Override
     public void gestaltresonance$setLedgeGrabPos(net.minecraft.util.math.BlockPos pos) {
-        this.gestaltresonance$ledgeGrabPos = pos;
+        ((PlayerEntity)(Object)this).getDataTracker().set(LEDGE_GRAB_POS, java.util.Optional.ofNullable(pos));
     }
 
     @Override
     public net.minecraft.util.math.BlockPos gestaltresonance$getLedgeGrabPos() {
-        return this.gestaltresonance$ledgeGrabPos;
+        return ((PlayerEntity)(Object)this).getDataTracker().get(LEDGE_GRAB_POS).orElse(null);
     }
 
     @Override
     public void gestaltresonance$setLedgeGrabSide(net.minecraft.util.math.Direction side) {
-        this.gestaltresonance$ledgeGrabSide = side;
+        ((PlayerEntity)(Object)this).getDataTracker().set(LEDGE_GRAB_SIDE, side == null ? -1 : side.getId());
     }
 
     @Override
     public net.minecraft.util.math.Direction gestaltresonance$getLedgeGrabSide() {
-        return this.gestaltresonance$ledgeGrabSide;
+        int sideId = ((PlayerEntity)(Object)this).getDataTracker().get(LEDGE_GRAB_SIDE);
+        return sideId == -1 ? null : net.minecraft.util.math.Direction.byId(sideId);
     }
 
     @Override
@@ -100,12 +110,23 @@ public class PlayerEntityGestaltThrowFlagMixin implements IGestaltPlayer {
 
     @Override
     public void gestaltresonance$setRedirectionActive(boolean active) {
-        this.gestaltresonance$redirectionActive = active;
+        ((PlayerEntity)(Object)this).getDataTracker().set(REDIRECTION_ACTIVE, active);
     }
 
     @Override
     public boolean gestaltresonance$isRedirectionActive() {
-        return this.gestaltresonance$redirectionActive;
+        return ((PlayerEntity)(Object)this).getDataTracker().get(REDIRECTION_ACTIVE);
+    }
+
+    // Amen Break passive: muffled movement flag
+    @Override
+    public void gestaltresonance$setMuffledMovementActive(boolean active) {
+        ((PlayerEntity)(Object)this).getDataTracker().set(MUFFLED_MOVEMENT_ACTIVE, active);
+    }
+
+    @Override
+    public boolean gestaltresonance$isMuffledMovementActive() {
+        return ((PlayerEntity)(Object)this).getDataTracker().get(MUFFLED_MOVEMENT_ACTIVE);
     }
 
     @Override

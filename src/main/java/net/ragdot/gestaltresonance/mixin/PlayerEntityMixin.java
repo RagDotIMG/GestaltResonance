@@ -167,7 +167,26 @@ public abstract class PlayerEntityMixin {
             ClientPlayNetworking.send(new GestaltThrowPayload(true));
         }
 
-        // Set 1 second cooldown for ledge grab after jumping
-        ((IGestaltPlayer) player).gestaltresonance$setLedgeGrabCooldown(10);
+        // Removed ledge grab cooldown; input/airborne gating prevents same-press grabs
+    }
+
+    @Inject(method = "tick", at = @At("TAIL"))
+    private void gestaltresonance$endThrowOnLanding(CallbackInfo ci) {
+        PlayerEntity player = (PlayerEntity) (Object) this;
+        IGestaltPlayer gp = (IGestaltPlayer) player;
+
+        if (!gp.gestaltresonance$isGestaltThrowActive()) return;
+
+        // End the throw state only AFTER fall damage has been processed.
+        // Vanilla resets fallDistance to 0 once handleFallDamage has run on landing.
+        // This ensures our LivingEntityFallDamageMixin sees the flag and cancels damage properly.
+        if ((player.isOnGround() || player.isTouchingWater()) && player.fallDistance <= 0.0f) {
+            gp.gestaltresonance$setGestaltThrowActive(false);
+
+            // If client-side, inform the server to keep states in sync
+            if (player.getWorld().isClient) {
+                ClientPlayNetworking.send(new GestaltThrowPayload(false));
+            }
+        }
     }
 }

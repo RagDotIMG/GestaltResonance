@@ -11,13 +11,6 @@
     },
     "done": true
   },
-  "minecraft:adventure/adventuring_time": {
-    "criteria": {
-      "minecraft:desert": "2026-02-01 02:12:46 +0100",
-      "minecraft:savanna": "2026-02-01 02:11:08 +0100"
-    },
-    "done": false
-  },
   "minecraft:recipes/misc/firework_rocket_simple": {
     "criteria": {
       "has_gunpowder": "2026-02-01 02:11:07 +0100"
@@ -29,6 +22,13 @@
       "has_gunpowder": "2026-02-01 02:11:07 +0100"
     },
     "done": true
+  },
+  "minecraft:adventure/adventuring_time": {
+    "criteria": {
+      "minecraft:desert": "2026-02-01 02:12:46 +0100",
+      "minecraft:savanna": "2026-02-01 02:11:08 +0100"
+    },
+    "done": false
   },
   "DataVersion": 3955
 }

@@ -18,8 +18,11 @@ import net.ragdot.gestaltresonance.effect.ModStatusEffects;
 import net.ragdot.gestaltresonance.entities.AmenBreak;
 import net.ragdot.gestaltresonance.entities.gestaltframework.GestaltBase;
 import net.ragdot.gestaltresonance.entities.ScorchedUtopia;
+import net.ragdot.gestaltresonance.entities.Spillways;
 import net.ragdot.gestaltresonance.item.ModItemGroups;
+import net.ragdot.gestaltresonance.block.ModBlocks;
 import net.ragdot.gestaltresonance.item.ModItems;
+import net.ragdot.gestaltresonance.projectile.PopBud;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,14 +59,35 @@ public class Gestaltresonance implements ModInitializer {
                     .build("amen_break")
     );
 
+    public static final EntityType<Spillways> SPILLWAYS = Registry.register(
+            Registries.ENTITY_TYPE,
+            Identifier.of(MOD_ID, "spillways"),
+            EntityType.Builder
+                    .create(Spillways::new, SpawnGroup.MISC)
+                    .dimensions(0.5f, 1.6f)
+                    .build("spillways")
+    );
+
+    public static final EntityType<PopBud> POP_BUD = Registry.register(
+            Registries.ENTITY_TYPE,
+            Identifier.of(MOD_ID, "pop_bud"),
+            EntityType.Builder
+                    .<PopBud>create(PopBud::new, SpawnGroup.MISC)
+                    .dimensions(0.25f, 0.25f)
+                    .build("pop_bud")
+    );
+
     @Override
     public void onInitialize() {
         ModStatusEffects.registerStatusEffects();
+        ModBlocks.registerModBlocks();
         ModItemGroups.registerItemGroups();
         ModItems.registerModItems();
         FabricDefaultAttributeRegistry.register(GESTALT_BASE_ENTITY_TYPE, GestaltBase.createBaseStandAttributes());
         FabricDefaultAttributeRegistry.register(SCORCHED_UTOPIA, ScorchedUtopia.createAttributes());
         FabricDefaultAttributeRegistry.register(AMEN_BREAK, AmenBreak.createAttributes());
+        FabricDefaultAttributeRegistry.register(SPILLWAYS, Spillways.createAttributes());
+        // Pop Bud is a projectile (no attributes required)
 
         registerCommands();
         GestaltNetworking.registerServerReceivers();

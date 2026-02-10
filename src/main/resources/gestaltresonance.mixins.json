@@ -9,7 +9,9 @@
     "LivingEntityFallDamageMixin",
     "LivingEntityKnockbackMixin",
     "GestaltAlphaMixin",
-    "ServerPlayNetworkHandlerMixin"
+    "ServerPlayNetworkHandlerMixin",
+    "EntityStepAndFallSoundMuteMixin",
+    "EntityVibrationSuppressMixin"
   ],
   "client": [
     "MinecraftClientMixin"
