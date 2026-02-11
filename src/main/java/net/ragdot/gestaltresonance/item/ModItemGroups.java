@@ -26,6 +26,12 @@ public class ModItemGroups {
                         entries.add(ModItems.ROTTEN_ESSENCE);
                         entries.add(ModItems.INKED_ESSENCE);
                         entries.add(ModItems.BLASTED_ESSENCE);
+                        entries.add(ModItems.SOUL_TEAR);
+                        entries.add(ModItems.SOUL_DUST);
+                        entries.add(ModItems.SOUL_WART);
+                        entries.add(ModItems.SOUL_ESSENCE);
+                        entries.add(ModItems.RESONANT_SOUL_STAR);
+                        entries.add(ModItems.DEBUG_EXP_BOOSTER);
                         // Pop Sprout no longer exposed in creative tab for testing
                     }).build());
 

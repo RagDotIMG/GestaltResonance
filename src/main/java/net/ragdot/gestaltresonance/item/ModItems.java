@@ -19,6 +19,12 @@ public class ModItems {
     public static final Item ROTTEN_ESSENCE = registerItem("rotten_essence", new Item(new Item.Settings()));
     public static final Item INKED_ESSENCE = registerItem("inked_essence", new Item(new Item.Settings()));
     public static final Item BLASTED_ESSENCE = registerItem("blasted_essence", new Item(new Item.Settings()));
+    public static final Item SOUL_DUST = registerItem("soul_dust", new Item(new Item.Settings()));
+    public static final Item SOUL_TEAR = registerItem("soul_tear", new Item(new Item.Settings()));
+    public static final Item SOUL_WART = registerItem("soul_wart", new Item(new Item.Settings()));
+    public static final Item SOUL_ESSENCE = registerItem("soul_essence", new SoulEssenceItem(new Item.Settings()));
+    public static final Item RESONANT_SOUL_STAR = registerItem("resonant_soul_star", new ResonantSoulStarItem(new Item.Settings()));
+    public static final Item DEBUG_EXP_BOOSTER = registerItem("debug_exp_booster", new DebugExpBoosterItem(new Item.Settings()));
 
     private static Item registerItem(String name, Item item) {
         return Registry.register(Registries.ITEM, Identifier.of(Gestaltresonance.MOD_ID, name), item);

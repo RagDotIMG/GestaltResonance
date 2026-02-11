@@ -19,21 +19,29 @@ public abstract class EntityVibrationSuppressMixin {
 
     @Inject(method = "emitGameEvent", at = @At("HEAD"), cancellable = true)
     private void gestaltresonance$suppressSpecificVibrations(RegistryEntry<GameEvent> eventEntry, Entity emitter, CallbackInfo ci) {
+        // Determine the player tied to this event: either the calling entity or the explicit emitter
+        PlayerEntity player = null;
         Object self = this;
-        if (self instanceof PlayerEntity player) {
-            IGestaltPlayer gp = (IGestaltPlayer) player;
-            if (gp.gestaltresonance$isMuffledMovementActive()) {
-                // Only suppress ground movement/landing; keep swimming etc.
-                boolean onGround = player.isOnGround();
-                boolean inWater = player.isTouchingWater();
-                boolean fallFlying = player.isFallFlying();
-                boolean riding = player.hasVehicle();
-                if (onGround && !inWater && !fallFlying && !riding) {
-                    if (eventEntry.matches(GameEvent.STEP) || eventEntry.matches(GameEvent.HIT_GROUND)) {
-                        ci.cancel();
-                    }
-                }
-            }
+        if (self instanceof PlayerEntity p) {
+            player = p;
+        } else if (emitter instanceof PlayerEntity p) {
+            player = p;
+        }
+
+        if (player == null) return;
+
+        // Only relevant on the logical server; client-side events don't affect sculk detection
+        if (player.getWorld().isClient) return;
+
+        IGestaltPlayer gp = (IGestaltPlayer) player;
+        if (!gp.gestaltresonance$isMuffledMovementActive()) return;
+
+        // Targeted suppression: only walking/sprinting and landing
+        String eventId = eventEntry.getKey().map(key -> key.getValue().toString()).orElse("");
+        if (eventEntry.matches(GameEvent.STEP)
+                || eventEntry.matches(GameEvent.HIT_GROUND)
+                || "minecraft:mob_step".equals(eventId)) {
+            ci.cancel();
         }
     }
 }

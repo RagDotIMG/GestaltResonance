@@ -255,9 +255,17 @@ public class GestaltresonanceClient implements ClientModInitializer {
                 ctx -> new GestaltRenderer<>(ctx, "gestalt")
         );
 
-        // 3) ScorchedUtopia uses custom Blockbench model
+        // 3) ScorchedUtopia uses custom Blockbench model (all tiers share renderer for now)
         EntityRendererRegistry.register(
                 Gestaltresonance.SCORCHED_UTOPIA,
+                ScorchedUtopiaRenderer::new
+        );
+        EntityRendererRegistry.register(
+                Gestaltresonance.SCORCHED_UTOPIA_II,
+                ScorchedUtopiaRenderer::new
+        );
+        EntityRendererRegistry.register(
+                Gestaltresonance.SCORCHED_UTOPIA_III,
                 ScorchedUtopiaRenderer::new
         );
 
@@ -271,6 +279,14 @@ public class GestaltresonanceClient implements ClientModInitializer {
                 Gestaltresonance.AMEN_BREAK,
                 AmenBreakRenderer::new
         );
+        EntityRendererRegistry.register(
+                Gestaltresonance.AMEN_BREAK_II,
+                AmenBreakRenderer::new
+        );
+        EntityRendererRegistry.register(
+                Gestaltresonance.AMEN_BREAK_III,
+                AmenBreakRenderer::new
+        );
 
         // 5) Spillways uses custom Blockbench model
         EntityModelLayerRegistry.registerModelLayer(
@@ -280,6 +296,14 @@ public class GestaltresonanceClient implements ClientModInitializer {
 
         EntityRendererRegistry.register(
                 Gestaltresonance.SPILLWAYS,
+                SpillwaysRenderer::new
+        );
+        EntityRendererRegistry.register(
+                Gestaltresonance.SPILLWAYS_II,
+                SpillwaysRenderer::new
+        );
+        EntityRendererRegistry.register(
+                Gestaltresonance.SPILLWAYS_III,
                 SpillwaysRenderer::new
         );
 
@@ -360,10 +384,11 @@ public class GestaltresonanceClient implements ClientModInitializer {
     public static class ScorchedUtopiaRenderer
             extends MobEntityRenderer<ScorchedUtopia, ScorchedUtopiaModel> {
 
-        private static final Identifier TEXTURE = Identifier.of(
-                Gestaltresonance.MOD_ID,
-                "textures/entity/scorched_utopia.png"
-        );
+        private static Identifier resolveTexture(ScorchedUtopia entity) {
+            // Use the entity's Gestalt id path to pick tier-specific texture
+            String path = entity.getGestaltId().getPath();
+            return Identifier.of(Gestaltresonance.MOD_ID, "textures/entity/" + path + ".png");
+        }
 
         public ScorchedUtopiaRenderer(EntityRendererFactory.Context ctx) {
             super(ctx,
@@ -381,14 +406,14 @@ public class GestaltresonanceClient implements ClientModInitializer {
         @Override
         protected RenderLayer getRenderLayer(ScorchedUtopia entity, boolean showBody, boolean translucent, boolean showOutline) {
             if (GestaltRenderer.isBlockingFirstPersonView(entity)) {
-                return RenderLayer.getEntityTranslucent(TEXTURE);
+                return RenderLayer.getEntityTranslucent(resolveTexture(entity));
             }
             return super.getRenderLayer(entity, showBody, translucent, showOutline);
         }
 
         @Override
         public Identifier getTexture(ScorchedUtopia entity) {
-            return TEXTURE;
+            return resolveTexture(entity);
         }
     }
 
@@ -396,10 +421,10 @@ public class GestaltresonanceClient implements ClientModInitializer {
     public static class AmenBreakRenderer
             extends MobEntityRenderer<AmenBreak, AmenBreakModel> {
 
-        private static final Identifier TEXTURE = Identifier.of(
-                Gestaltresonance.MOD_ID,
-                "textures/entity/amen_break.png"
-        );
+        private static Identifier resolveTexture(AmenBreak entity) {
+            String path = entity.getGestaltId().getPath();
+            return Identifier.of(Gestaltresonance.MOD_ID, "textures/entity/" + path + ".png");
+        }
 
         public AmenBreakRenderer(EntityRendererFactory.Context ctx) {
             super(ctx,
@@ -417,14 +442,14 @@ public class GestaltresonanceClient implements ClientModInitializer {
         @Override
         protected RenderLayer getRenderLayer(AmenBreak entity, boolean showBody, boolean translucent, boolean showOutline) {
             if (GestaltRenderer.isBlockingFirstPersonView(entity)) {
-                return RenderLayer.getEntityTranslucent(TEXTURE);
+                return RenderLayer.getEntityTranslucent(resolveTexture(entity));
             }
             return super.getRenderLayer(entity, showBody, translucent, showOutline);
         }
 
         @Override
         public Identifier getTexture(AmenBreak entity) {
-            return TEXTURE;
+            return resolveTexture(entity);
         }
     }
 
@@ -432,10 +457,10 @@ public class GestaltresonanceClient implements ClientModInitializer {
     public static class SpillwaysRenderer
             extends MobEntityRenderer<Spillways, SpillwaysModel> {
 
-        private static final Identifier TEXTURE = Identifier.of(
-                Gestaltresonance.MOD_ID,
-                "textures/entity/spillways.png"
-        );
+        private static Identifier resolveTexture(Spillways entity) {
+            String path = entity.getGestaltId().getPath();
+            return Identifier.of(Gestaltresonance.MOD_ID, "textures/entity/" + path + ".png");
+        }
 
         public SpillwaysRenderer(EntityRendererFactory.Context ctx) {
             super(ctx,
@@ -453,14 +478,14 @@ public class GestaltresonanceClient implements ClientModInitializer {
         @Override
         protected RenderLayer getRenderLayer(Spillways entity, boolean showBody, boolean translucent, boolean showOutline) {
             if (GestaltRenderer.isBlockingFirstPersonView(entity)) {
-                return RenderLayer.getEntityTranslucent(TEXTURE);
+                return RenderLayer.getEntityTranslucent(resolveTexture(entity));
             }
             return super.getRenderLayer(entity, showBody, translucent, showOutline);
         }
 
         @Override
         public Identifier getTexture(Spillways entity) {
-            return TEXTURE;
+            return resolveTexture(entity);
         }
     }
 

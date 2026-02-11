@@ -88,6 +88,13 @@ public class GestaltBase extends MobEntity {
         builder.add(LVL, 1);
         builder.add(IS_GUARD_DASHING, false);
         builder.add(IS_POST_DASH_STICKING, false);
+        // Power cooldown trackers for HUD sync
+        builder.add(POWER_CD_0, 0);
+        builder.add(POWER_CD_1, 0);
+        builder.add(POWER_CD_2, 0);
+        builder.add(POWER_MAX_0, 0);
+        builder.add(POWER_MAX_1, 0);
+        builder.add(POWER_MAX_2, 0);
     }
 
     // ===== Shared attributes =====
@@ -157,7 +164,7 @@ public class GestaltBase extends MobEntity {
     public void setExp(int exp) {
         int maxExp = getMaxExp();
         if (exp >= maxExp) {
-            if (getLvl() < 5) {
+            if (getLvl() < getMaxLevel()) {
                 this.dataTracker.set(EXP, 0);
                 setLvl(getLvl() + 1);
             } else {
@@ -166,7 +173,7 @@ public class GestaltBase extends MobEntity {
         } else {
             this.dataTracker.set(EXP, exp);
         }
-        
+
         PlayerEntity owner = getOwner();
         if (owner != null && !this.getWorld().isClient) {
             ((IGestaltPlayer) owner).gestaltresonance$setGestaltExp(this.getGestaltId(), this.dataTracker.get(EXP));
@@ -178,7 +185,7 @@ public class GestaltBase extends MobEntity {
     }
 
     public void setLvl(int lvl) {
-        int cappedLvl = Math.min(lvl, 5);
+        int cappedLvl = Math.min(lvl, getMaxLevel());
         this.dataTracker.set(LVL, cappedLvl);
         PlayerEntity owner = getOwner();
         if (owner != null && !this.getWorld().isClient) {
@@ -190,9 +197,123 @@ public class GestaltBase extends MobEntity {
         return net.minecraft.util.Identifier.of("gestaltresonance", "gestalt");
     }
 
+    /**
+     * EXP required to reach the next level from the current level.
+     * Default progression:
+     *  - Levels 1–4 → 120 EXP each
+     *  - Levels 5–7 → 200 EXP each (Tier 2 range: to reach 6–8)
+     *  - Levels 8–9 → 300 EXP each (Tier 3 range: to reach 9–10)
+     *  - At max level → keeps the bar full (returns current stored EXP cap)
+     */
     public int getMaxExp() {
-        return 120;
+        return getExpRequiredForNextLevel(getLvl());
     }
+
+    /**
+     * Computes the EXP requirement for progressing from the provided level to the next.
+     * Implementations may override for custom curves per Gestalt.
+     */
+    protected int getExpRequiredForNextLevel(int currentLevel) {
+        int maxLevel = getMaxLevel();
+        if (currentLevel >= maxLevel) {
+            // Already at cap; return current EXP so the bar appears full and stable
+            return this.dataTracker.get(EXP);
+        }
+
+        if (currentLevel <= 4) {
+            return 120;
+        }
+        if (currentLevel <= 7) { // levels 5,6,7 → to 6,7,8
+            return 200;
+        }
+        // levels 8,9 → to 9,10
+        return 300;
+    }
+
+    /** Per-tier max level. Tier I defaults to 5; higher tiers may override. */
+    protected int getMaxLevel() {
+        return 5;
+    }
+
+    // ===== HUD power state API (for 3 powers: indices 0..2) =====
+    /** Number of power slots to render on the HUD. Default: 3. */
+    public int getPowerCount() { return 3; }
+
+    /**
+     * If true for a given index, the HUD will render this slot as a simple on/off toggle
+     * (full when active, empty when inactive). Default: false (cooldown-based).
+     */
+    public boolean isPowerToggle(int index) { return false; }
+
+    /** Returns whether a toggle power is currently active. Only consulted when {@link #isPowerToggle(int)} is true. */
+    public boolean isPowerActive(int index) { return false; }
+
+    /**
+     * Progress of cooldown recovery for this power in range [0,1].
+     * 0 = just used (empty); 1 = fully ready (full).
+     */
+    public float getPowerCooldownProgress(int index) {
+        int max = getPowerMaxCooldownTicks(index);
+        int rem = getPowerRemainingCooldownTicks(index);
+        if (max <= 0) return 1.0f;
+        float progress = 1.0f - (rem / (float) max);
+        return Math.max(0.0f, Math.min(1.0f, progress));
+    }
+
+    /** Remaining cooldown ticks (synced to client). */
+    public int getPowerRemainingCooldownTicks(int index) {
+        return switch (index) {
+            case 0 -> this.getDataTracker().get(POWER_CD_0);
+            case 1 -> this.getDataTracker().get(POWER_CD_1);
+            case 2 -> this.getDataTracker().get(POWER_CD_2);
+            default -> 0;
+        };
+    }
+
+    /** Maximum cooldown ticks (synced to client). */
+    public int getPowerMaxCooldownTicks(int index) {
+        return switch (index) {
+            case 0 -> this.getDataTracker().get(POWER_MAX_0);
+            case 1 -> this.getDataTracker().get(POWER_MAX_1);
+            case 2 -> this.getDataTracker().get(POWER_MAX_2);
+            default -> 0;
+        };
+    }
+
+    // ===== Client sync for power cooldowns (3 slots) =====
+    // Tracked so the client HUD can render cooldown progress consistently.
+    protected static final TrackedData<Integer> POWER_CD_0 = DataTracker.registerData(GestaltBase.class, TrackedDataHandlerRegistry.INTEGER);
+    protected static final TrackedData<Integer> POWER_CD_1 = DataTracker.registerData(GestaltBase.class, TrackedDataHandlerRegistry.INTEGER);
+    protected static final TrackedData<Integer> POWER_CD_2 = DataTracker.registerData(GestaltBase.class, TrackedDataHandlerRegistry.INTEGER);
+    protected static final TrackedData<Integer> POWER_MAX_0 = DataTracker.registerData(GestaltBase.class, TrackedDataHandlerRegistry.INTEGER);
+    protected static final TrackedData<Integer> POWER_MAX_1 = DataTracker.registerData(GestaltBase.class, TrackedDataHandlerRegistry.INTEGER);
+    protected static final TrackedData<Integer> POWER_MAX_2 = DataTracker.registerData(GestaltBase.class, TrackedDataHandlerRegistry.INTEGER);
+
+    // NOTE: We must also add our power cooldown trackers inside the primary initDataTracker above.
+
+    protected void setPowerCooldown(int index, int remaining, int max) {
+        // Server-side authority; values are synced to clients by DataTracker
+        if (this.getWorld().isClient) return;
+        remaining = Math.max(0, remaining);
+        max = Math.max(0, max);
+        switch (index) {
+            case 0 -> {
+                this.getDataTracker().set(POWER_CD_0, remaining);
+                this.getDataTracker().set(POWER_MAX_0, max);
+            }
+            case 1 -> {
+                this.getDataTracker().set(POWER_CD_1, remaining);
+                this.getDataTracker().set(POWER_MAX_1, max);
+            }
+            case 2 -> {
+                this.getDataTracker().set(POWER_CD_2, remaining);
+                this.getDataTracker().set(POWER_MAX_2, max);
+            }
+            default -> {}
+        }
+    }
+
+    // (Note: single set of getPower* methods is defined above.)
 
     protected void updateStamina() {
         if (staminaRegenDelay > 0) {

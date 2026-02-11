@@ -19,8 +19,23 @@ import net.ragdot.gestaltresonance.entities.gestaltframework.GestaltBase;
 
 public class Spillways extends GestaltBase {
 
+    // Cooldown for Power 1 (Lachryma)
+    private int lachrymaCooldown = 0;
+
     public Spillways(EntityType<? extends Spillways> type, World world) {
         super(type, world);
+    }
+
+    @Override
+    public void tick() {
+        super.tick();
+        if (!this.getWorld().isClient) {
+            if (lachrymaCooldown > 0) {
+                lachrymaCooldown--;
+                // Sync HUD power cooldown progress (slot 0)
+                this.setPowerCooldown(0, lachrymaCooldown, 15);
+            }
+        }
     }
 
     @Override
@@ -77,6 +92,9 @@ public class Spillways extends GestaltBase {
     public void lachryma(ServerPlayerEntity player) {
         if (player == null || player.getServerWorld() == null) return;
 
+        // Respect cooldown
+        if (this.lachrymaCooldown > 0) return;
+
         double range = 6.5; // slight increase for shallow angles
         // Include fluids in raycast so we can directly target water source blocks
         BlockHitResult hit = (BlockHitResult) player.raycast(range, 1.0f, true);
@@ -98,6 +116,9 @@ public class Spillways extends GestaltBase {
             player.getWorld().setBlockState(hitPos, cleared);
             float newStamina = Math.min(getMaxStamina(), getStamina() + 10f);
             this.setStamina(newStamina);
+            // Start cooldown on successful action
+            this.lachrymaCooldown = 15;
+            this.setPowerCooldown(0, this.lachrymaCooldown, 15);
             return;
         }
 
@@ -123,6 +144,9 @@ public class Spillways extends GestaltBase {
                 player.getWorld().setBlockState(samplePos, Blocks.AIR.getDefaultState());
                 float newStamina = Math.min(getMaxStamina(), getStamina() + 10f);
                 this.setStamina(newStamina);
+                // Start cooldown on successful action
+                this.lachrymaCooldown = 15;
+                this.setPowerCooldown(0, this.lachrymaCooldown, 15);
                 return;
             }
         }
@@ -136,6 +160,9 @@ public class Spillways extends GestaltBase {
             player.getWorld().setBlockState(facePos, Blocks.AIR.getDefaultState());
             float newStamina = Math.min(getMaxStamina(), getStamina() + 10f);
             this.setStamina(newStamina);
+            // Start cooldown on successful action
+            this.lachrymaCooldown = 15;
+            this.setPowerCooldown(0, this.lachrymaCooldown, 15);
             return;
         }
 
@@ -205,6 +232,9 @@ public class Spillways extends GestaltBase {
                 this.setStamina(this.getStamina() - createCost);
                 // Reward Gestalt experience for successful use
                 this.setExp(this.getExp() + 2);
+                // Start cooldown on successful action
+                this.lachrymaCooldown = 15;
+                this.setPowerCooldown(0, this.lachrymaCooldown, 15);
                 return;
             } else {
                 return; // already waterlogged → no action
@@ -234,5 +264,9 @@ public class Spillways extends GestaltBase {
 
         // Reward Gestalt experience for successful use
         this.setExp(this.getExp() + 2);
+
+        // Start cooldown on successful action
+        this.lachrymaCooldown = 15;
+        this.setPowerCooldown(0, this.lachrymaCooldown, 15);
     }
 }

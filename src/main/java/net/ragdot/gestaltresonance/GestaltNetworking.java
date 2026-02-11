@@ -256,20 +256,50 @@ public class GestaltNetworking {
         if (assigned == null) return;
 
         var scorchedId = Identifier.of(Gestaltresonance.MOD_ID, "scorched_utopia");
+        var scorchedId2 = Identifier.of(Gestaltresonance.MOD_ID, "scorched_utopia_ii");
+        var scorchedId3 = Identifier.of(Gestaltresonance.MOD_ID, "scorched_utopia_iii");
         if (assigned.equals(scorchedId)) {
             toggleScorchedUtopia(player);
             return;
         }
+        if (assigned.equals(scorchedId2)) {
+            toggleScorchedUtopiaII(player);
+            return;
+        }
+        if (assigned.equals(scorchedId3)) {
+            toggleScorchedUtopiaIII(player);
+            return;
+        }
 
         var amenBreakId = Identifier.of(Gestaltresonance.MOD_ID, "amen_break");
+        var amenBreakId2 = Identifier.of(Gestaltresonance.MOD_ID, "amen_break_ii");
+        var amenBreakId3 = Identifier.of(Gestaltresonance.MOD_ID, "amen_break_iii");
         if (assigned.equals(amenBreakId)) {
             toggleAmenBreak(player);
             return;
         }
+        if (assigned.equals(amenBreakId2)) {
+            toggleAmenBreakII(player);
+            return;
+        }
+        if (assigned.equals(amenBreakId3)) {
+            toggleAmenBreakIII(player);
+            return;
+        }
 
         var spillwaysId = Identifier.of(Gestaltresonance.MOD_ID, "spillways");
+        var spillwaysId2 = Identifier.of(Gestaltresonance.MOD_ID, "spillways_ii");
+        var spillwaysId3 = Identifier.of(Gestaltresonance.MOD_ID, "spillways_iii");
         if (assigned.equals(spillwaysId)) {
             toggleSpillways(player);
+            return;
+        }
+        if (assigned.equals(spillwaysId2)) {
+            toggleSpillwaysII(player);
+            return;
+        }
+        if (assigned.equals(spillwaysId3)) {
+            toggleSpillwaysIII(player);
         }
     }
 
@@ -313,6 +343,102 @@ public class GestaltNetworking {
         stand.setOwner(player);
 
         // Load persisted values from player
+        IGestaltPlayer gp = (IGestaltPlayer) player;
+        net.minecraft.util.Identifier id = stand.getGestaltId();
+        stand.setStamina(gp.gestaltresonance$getGestaltStamina(id));
+        stand.setExp(gp.gestaltresonance$getGestaltExp(id));
+        stand.setLvl(gp.gestaltresonance$getGestaltLvl(id));
+
+        stand.refreshPositionAndAngles(spawnX, spawnY, spawnZ, yaw, 0.0f);
+        world.spawnEntity(stand);
+    }
+
+    private static void toggleAmenBreakII(ServerPlayerEntity player) {
+        ServerWorld world = player.getServerWorld();
+
+        List<net.ragdot.gestaltresonance.entities.AmenBreakII> stands = world.getEntitiesByClass(
+                net.ragdot.gestaltresonance.entities.AmenBreakII.class,
+                player.getBoundingBox().expand(256.0),
+                stand -> {
+                    var uuid = stand.getOwnerUuid();
+                    return uuid != null && uuid.equals(player.getUuid());
+                }
+        );
+
+        if (!stands.isEmpty()) {
+            for (net.ragdot.gestaltresonance.entities.AmenBreakII stand : stands) {
+                stand.despawnWithCleanup();
+            }
+            return;
+        }
+
+        float yaw = player.getYaw();
+        double rad = Math.toRadians(yaw);
+
+        double backOffset = 1.9;
+        double sideOffset = 0.5;
+        double heightOffset = 0.4;
+
+        double backX = -Math.sin(rad);
+        double backZ =  Math.cos(rad);
+        double rightX =  Math.cos(rad);
+        double rightZ =  Math.sin(rad);
+
+        double spawnX = player.getX() + backOffset * backX + sideOffset * rightX;
+        double spawnZ = player.getZ() + backOffset * backZ + sideOffset * rightZ;
+        double spawnY = player.getY() + heightOffset;
+
+        net.ragdot.gestaltresonance.entities.AmenBreakII stand = new net.ragdot.gestaltresonance.entities.AmenBreakII(Gestaltresonance.AMEN_BREAK_II, world);
+        stand.setOwner(player);
+
+        IGestaltPlayer gp = (IGestaltPlayer) player;
+        net.minecraft.util.Identifier id = stand.getGestaltId();
+        stand.setStamina(gp.gestaltresonance$getGestaltStamina(id));
+        stand.setExp(gp.gestaltresonance$getGestaltExp(id));
+        stand.setLvl(gp.gestaltresonance$getGestaltLvl(id));
+
+        stand.refreshPositionAndAngles(spawnX, spawnY, spawnZ, yaw, 0.0f);
+        world.spawnEntity(stand);
+    }
+
+    private static void toggleAmenBreakIII(ServerPlayerEntity player) {
+        ServerWorld world = player.getServerWorld();
+
+        List<net.ragdot.gestaltresonance.entities.AmenBreakIII> stands = world.getEntitiesByClass(
+                net.ragdot.gestaltresonance.entities.AmenBreakIII.class,
+                player.getBoundingBox().expand(256.0),
+                stand -> {
+                    var uuid = stand.getOwnerUuid();
+                    return uuid != null && uuid.equals(player.getUuid());
+                }
+        );
+
+        if (!stands.isEmpty()) {
+            for (net.ragdot.gestaltresonance.entities.AmenBreakIII stand : stands) {
+                stand.despawnWithCleanup();
+            }
+            return;
+        }
+
+        float yaw = player.getYaw();
+        double rad = Math.toRadians(yaw);
+
+        double backOffset = 1.9;
+        double sideOffset = 0.5;
+        double heightOffset = 0.4;
+
+        double backX = -Math.sin(rad);
+        double backZ =  Math.cos(rad);
+        double rightX =  Math.cos(rad);
+        double rightZ =  Math.sin(rad);
+
+        double spawnX = player.getX() + backOffset * backX + sideOffset * rightX;
+        double spawnZ = player.getZ() + backOffset * backZ + sideOffset * rightZ;
+        double spawnY = player.getY() + heightOffset;
+
+        net.ragdot.gestaltresonance.entities.AmenBreakIII stand = new net.ragdot.gestaltresonance.entities.AmenBreakIII(Gestaltresonance.AMEN_BREAK_III, world);
+        stand.setOwner(player);
+
         IGestaltPlayer gp = (IGestaltPlayer) player;
         net.minecraft.util.Identifier id = stand.getGestaltId();
         stand.setStamina(gp.gestaltresonance$getGestaltStamina(id));
@@ -372,6 +498,102 @@ public class GestaltNetworking {
         world.spawnEntity(stand);
     }
 
+    private static void toggleScorchedUtopiaII(ServerPlayerEntity player) {
+        ServerWorld world = player.getServerWorld();
+
+        List<net.ragdot.gestaltresonance.entities.ScorchedUtopiaII> stands = world.getEntitiesByClass(
+                net.ragdot.gestaltresonance.entities.ScorchedUtopiaII.class,
+                player.getBoundingBox().expand(256.0),
+                stand -> {
+                    var uuid = stand.getOwnerUuid();
+                    return uuid != null && uuid.equals(player.getUuid());
+                }
+        );
+
+        if (!stands.isEmpty()) {
+            for (net.ragdot.gestaltresonance.entities.ScorchedUtopiaII stand : stands) {
+                stand.despawnWithCleanup();
+            }
+            return;
+        }
+
+        float yaw = player.getYaw();
+        double rad = Math.toRadians(yaw);
+
+        double backOffset = 1.9;
+        double sideOffset = 0.5;
+        double heightOffset = 0.4;
+
+        double backX = -Math.sin(rad);
+        double backZ =  Math.cos(rad);
+        double rightX =  Math.cos(rad);
+        double rightZ =  Math.sin(rad);
+
+        double spawnX = player.getX() + backOffset * backX + sideOffset * rightX;
+        double spawnZ = player.getZ() + backOffset * backZ + sideOffset * rightZ;
+        double spawnY = player.getY() + heightOffset;
+
+        net.ragdot.gestaltresonance.entities.ScorchedUtopiaII stand = new net.ragdot.gestaltresonance.entities.ScorchedUtopiaII(Gestaltresonance.SCORCHED_UTOPIA_II, world);
+        stand.setOwner(player);
+
+        IGestaltPlayer gp = (IGestaltPlayer) player;
+        net.minecraft.util.Identifier id = stand.getGestaltId();
+        stand.setStamina(gp.gestaltresonance$getGestaltStamina(id));
+        stand.setExp(gp.gestaltresonance$getGestaltExp(id));
+        stand.setLvl(gp.gestaltresonance$getGestaltLvl(id));
+
+        stand.refreshPositionAndAngles(spawnX, spawnY, spawnZ, yaw, 0.0f);
+        world.spawnEntity(stand);
+    }
+
+    private static void toggleScorchedUtopiaIII(ServerPlayerEntity player) {
+        ServerWorld world = player.getServerWorld();
+
+        List<net.ragdot.gestaltresonance.entities.ScorchedUtopiaIII> stands = world.getEntitiesByClass(
+                net.ragdot.gestaltresonance.entities.ScorchedUtopiaIII.class,
+                player.getBoundingBox().expand(256.0),
+                stand -> {
+                    var uuid = stand.getOwnerUuid();
+                    return uuid != null && uuid.equals(player.getUuid());
+                }
+        );
+
+        if (!stands.isEmpty()) {
+            for (net.ragdot.gestaltresonance.entities.ScorchedUtopiaIII stand : stands) {
+                stand.despawnWithCleanup();
+            }
+            return;
+        }
+
+        float yaw = player.getYaw();
+        double rad = Math.toRadians(yaw);
+
+        double backOffset = 1.9;
+        double sideOffset = 0.5;
+        double heightOffset = 0.4;
+
+        double backX = -Math.sin(rad);
+        double backZ =  Math.cos(rad);
+        double rightX =  Math.cos(rad);
+        double rightZ =  Math.sin(rad);
+
+        double spawnX = player.getX() + backOffset * backX + sideOffset * rightX;
+        double spawnZ = player.getZ() + backOffset * backZ + sideOffset * rightZ;
+        double spawnY = player.getY() + heightOffset;
+
+        net.ragdot.gestaltresonance.entities.ScorchedUtopiaIII stand = new net.ragdot.gestaltresonance.entities.ScorchedUtopiaIII(Gestaltresonance.SCORCHED_UTOPIA_III, world);
+        stand.setOwner(player);
+
+        IGestaltPlayer gp = (IGestaltPlayer) player;
+        net.minecraft.util.Identifier id = stand.getGestaltId();
+        stand.setStamina(gp.gestaltresonance$getGestaltStamina(id));
+        stand.setExp(gp.gestaltresonance$getGestaltExp(id));
+        stand.setLvl(gp.gestaltresonance$getGestaltLvl(id));
+
+        stand.refreshPositionAndAngles(spawnX, spawnY, spawnZ, yaw, 0.0f);
+        world.spawnEntity(stand);
+    }
+
     private static void toggleSpillways(ServerPlayerEntity player) {
         ServerWorld world = player.getServerWorld();
 
@@ -408,6 +630,102 @@ public class GestaltNetworking {
         double spawnY = player.getY() + heightOffset;
 
         net.ragdot.gestaltresonance.entities.Spillways stand = new net.ragdot.gestaltresonance.entities.Spillways(Gestaltresonance.SPILLWAYS, world);
+        stand.setOwner(player);
+
+        IGestaltPlayer gp = (IGestaltPlayer) player;
+        net.minecraft.util.Identifier id = stand.getGestaltId();
+        stand.setStamina(gp.gestaltresonance$getGestaltStamina(id));
+        stand.setExp(gp.gestaltresonance$getGestaltExp(id));
+        stand.setLvl(gp.gestaltresonance$getGestaltLvl(id));
+
+        stand.refreshPositionAndAngles(spawnX, spawnY, spawnZ, yaw, 0.0f);
+        world.spawnEntity(stand);
+    }
+
+    private static void toggleSpillwaysII(ServerPlayerEntity player) {
+        ServerWorld world = player.getServerWorld();
+
+        List<net.ragdot.gestaltresonance.entities.SpillwaysII> stands = world.getEntitiesByClass(
+                net.ragdot.gestaltresonance.entities.SpillwaysII.class,
+                player.getBoundingBox().expand(256.0),
+                stand -> {
+                    var uuid = stand.getOwnerUuid();
+                    return uuid != null && uuid.equals(player.getUuid());
+                }
+        );
+
+        if (!stands.isEmpty()) {
+            for (net.ragdot.gestaltresonance.entities.SpillwaysII stand : stands) {
+                stand.despawnWithCleanup();
+            }
+            return;
+        }
+
+        float yaw = player.getYaw();
+        double rad = Math.toRadians(yaw);
+
+        double backOffset = 1.9;
+        double sideOffset = 0.5;
+        double heightOffset = 0.4;
+
+        double backX = -Math.sin(rad);
+        double backZ =  Math.cos(rad);
+        double rightX =  Math.cos(rad);
+        double rightZ =  Math.sin(rad);
+
+        double spawnX = player.getX() + backOffset * backX + sideOffset * rightX;
+        double spawnZ = player.getZ() + backOffset * backZ + sideOffset * rightZ;
+        double spawnY = player.getY() + heightOffset;
+
+        net.ragdot.gestaltresonance.entities.SpillwaysII stand = new net.ragdot.gestaltresonance.entities.SpillwaysII(Gestaltresonance.SPILLWAYS_II, world);
+        stand.setOwner(player);
+
+        IGestaltPlayer gp = (IGestaltPlayer) player;
+        net.minecraft.util.Identifier id = stand.getGestaltId();
+        stand.setStamina(gp.gestaltresonance$getGestaltStamina(id));
+        stand.setExp(gp.gestaltresonance$getGestaltExp(id));
+        stand.setLvl(gp.gestaltresonance$getGestaltLvl(id));
+
+        stand.refreshPositionAndAngles(spawnX, spawnY, spawnZ, yaw, 0.0f);
+        world.spawnEntity(stand);
+    }
+
+    private static void toggleSpillwaysIII(ServerPlayerEntity player) {
+        ServerWorld world = player.getServerWorld();
+
+        List<net.ragdot.gestaltresonance.entities.SpillwaysIII> stands = world.getEntitiesByClass(
+                net.ragdot.gestaltresonance.entities.SpillwaysIII.class,
+                player.getBoundingBox().expand(256.0),
+                stand -> {
+                    var uuid = stand.getOwnerUuid();
+                    return uuid != null && uuid.equals(player.getUuid());
+                }
+        );
+
+        if (!stands.isEmpty()) {
+            for (net.ragdot.gestaltresonance.entities.SpillwaysIII stand : stands) {
+                stand.despawnWithCleanup();
+            }
+            return;
+        }
+
+        float yaw = player.getYaw();
+        double rad = Math.toRadians(yaw);
+
+        double backOffset = 1.9;
+        double sideOffset = 0.5;
+        double heightOffset = 0.4;
+
+        double backX = -Math.sin(rad);
+        double backZ =  Math.cos(rad);
+        double rightX =  Math.cos(rad);
+        double rightZ =  Math.sin(rad);
+
+        double spawnX = player.getX() + backOffset * backX + sideOffset * rightX;
+        double spawnZ = player.getZ() + backOffset * backZ + sideOffset * rightZ;
+        double spawnY = player.getY() + heightOffset;
+
+        net.ragdot.gestaltresonance.entities.SpillwaysIII stand = new net.ragdot.gestaltresonance.entities.SpillwaysIII(Gestaltresonance.SPILLWAYS_III, world);
         stand.setOwner(player);
 
         IGestaltPlayer gp = (IGestaltPlayer) player;

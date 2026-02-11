@@ -80,6 +80,19 @@ public class ScorchedUtopia extends GestaltBase {
         }
     }
 
+    // ===== HUD power state: map Aura to Power #1 as a toggle =====
+    @Override
+    public boolean isPowerToggle(int index) {
+        if (index == 0) return true; // Aura is a toggle
+        return super.isPowerToggle(index);
+    }
+
+    @Override
+    public boolean isPowerActive(int index) {
+        if (index == 0) return this.isAuraActive();
+        return super.isPowerActive(index);
+    }
+
     @Override
     protected void applyOwnerPassiveBuffs(PlayerEntity owner) {
         // Grant +2 armor while Scorched Utopia is active by ensuring an attribute modifier is present.

@@ -46,6 +46,77 @@ public class PlayerEntityGestaltThrowFlagMixin implements IGestaltPlayer {
     @Unique
     private final java.util.Map<net.minecraft.util.Identifier, Integer> gestaltresonance$lvlMap = new java.util.HashMap<>();
 
+    // ===== Persistence of Gestalt stats (per-id) =====
+    @org.spongepowered.asm.mixin.injection.Inject(method = "writeCustomDataToNbt", at = @At("TAIL"))
+    private void gestaltresonance$writeGestaltData(net.minecraft.nbt.NbtCompound nbt,
+                                                   org.spongepowered.asm.mixin.injection.callback.CallbackInfo ci) {
+        net.minecraft.nbt.NbtCompound root = new net.minecraft.nbt.NbtCompound();
+
+        // Stamina map
+        net.minecraft.nbt.NbtCompound staminaTag = new net.minecraft.nbt.NbtCompound();
+        for (var e : this.gestaltresonance$staminaMap.entrySet()) {
+            staminaTag.putFloat(e.getKey().toString(), e.getValue());
+        }
+        root.put("stamina", staminaTag);
+
+        // EXP map
+        net.minecraft.nbt.NbtCompound expTag = new net.minecraft.nbt.NbtCompound();
+        for (var e : this.gestaltresonance$expMap.entrySet()) {
+            expTag.putInt(e.getKey().toString(), e.getValue());
+        }
+        root.put("exp", expTag);
+
+        // LVL map
+        net.minecraft.nbt.NbtCompound lvlTag = new net.minecraft.nbt.NbtCompound();
+        for (var e : this.gestaltresonance$lvlMap.entrySet()) {
+            lvlTag.putInt(e.getKey().toString(), e.getValue());
+        }
+        root.put("lvl", lvlTag);
+
+        nbt.put("GestaltStats", root);
+    }
+
+    @org.spongepowered.asm.mixin.injection.Inject(method = "readCustomDataFromNbt", at = @At("TAIL"))
+    private void gestaltresonance$readGestaltData(net.minecraft.nbt.NbtCompound nbt,
+                                                  org.spongepowered.asm.mixin.injection.callback.CallbackInfo ci) {
+        if (nbt == null || !nbt.contains("GestaltStats", net.minecraft.nbt.NbtElement.COMPOUND_TYPE)) return;
+        net.minecraft.nbt.NbtCompound root = nbt.getCompound("GestaltStats");
+
+        this.gestaltresonance$staminaMap.clear();
+        this.gestaltresonance$expMap.clear();
+        this.gestaltresonance$lvlMap.clear();
+
+        // Stamina
+        if (root.contains("stamina", net.minecraft.nbt.NbtElement.COMPOUND_TYPE)) {
+            net.minecraft.nbt.NbtCompound staminaTag = root.getCompound("stamina");
+            for (String key : staminaTag.getKeys()) {
+                try {
+                    this.gestaltresonance$staminaMap.put(net.minecraft.util.Identifier.of(key), staminaTag.getFloat(key));
+                } catch (IllegalArgumentException ignored) {}
+            }
+        }
+
+        // EXP
+        if (root.contains("exp", net.minecraft.nbt.NbtElement.COMPOUND_TYPE)) {
+            net.minecraft.nbt.NbtCompound expTag = root.getCompound("exp");
+            for (String key : expTag.getKeys()) {
+                try {
+                    this.gestaltresonance$expMap.put(net.minecraft.util.Identifier.of(key), expTag.getInt(key));
+                } catch (IllegalArgumentException ignored) {}
+            }
+        }
+
+        // LVL
+        if (root.contains("lvl", net.minecraft.nbt.NbtElement.COMPOUND_TYPE)) {
+            net.minecraft.nbt.NbtCompound lvlTag = root.getCompound("lvl");
+            for (String key : lvlTag.getKeys()) {
+                try {
+                    this.gestaltresonance$lvlMap.put(net.minecraft.util.Identifier.of(key), lvlTag.getInt(key));
+                } catch (IllegalArgumentException ignored) {}
+            }
+        }
+    }
+
     @Override
     public void gestaltresonance$setGestaltThrowActive(boolean active) {
         ((PlayerEntity)(Object)this).getDataTracker().set(GESTALT_THROW_ACTIVE, active);

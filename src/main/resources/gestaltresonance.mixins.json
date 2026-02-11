@@ -11,7 +11,8 @@
     "GestaltAlphaMixin",
     "ServerPlayNetworkHandlerMixin",
     "EntityStepAndFallSoundMuteMixin",
-    "EntityVibrationSuppressMixin"
+    "EntityVibrationSuppressMixin",
+    "SculkSensorVibrationCallbackMixin"
   ],
   "client": [
     "MinecraftClientMixin"

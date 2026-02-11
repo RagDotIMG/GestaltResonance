@@ -27,6 +27,8 @@ public class AmenBreak extends GestaltBase {
         if (!this.getWorld().isClient) {
             if (jungleBomberCooldown > 0) {
                 jungleBomberCooldown--;
+                // Sync to client HUD
+                this.setPowerCooldown(0, jungleBomberCooldown, 15);
             }
         }
     }
@@ -113,12 +115,12 @@ public class AmenBreak extends GestaltBase {
         double fwdX = -Math.sin(rad);
         double fwdZ =  Math.cos(rad);
 
-        double forwardOffset = 0.4; // slightly in front
-        double sideOffset = -0.25;   // to the right
-        double upOffset = 0.10;     // slightly up
+        double forwardOffset = 0.5; // slightly in front
+        double sideOffset = -0.50;   // to the right
+        double upOffset = 0.15;     // slightly up
 
         double spawnX = player.getX() + forwardOffset * fwdX + sideOffset * rightX;
-        double spawnY = player.getEyeY() - 0.2 + upOffset; // close to hand height
+        double spawnY = player.getEyeY() - 0.3 + upOffset; // close to hand height
         double spawnZ = player.getZ() + forwardOffset * fwdZ + sideOffset * rightZ;
 
         bud.refreshPositionAndAngles(spawnX, spawnY, spawnZ, player.getYaw(), player.getPitch());
@@ -128,7 +130,11 @@ public class AmenBreak extends GestaltBase {
 
         // Drain stamina on use
         this.setStamina(Math.max(0.0f, this.getStamina() - 4.0f));
-        // Start cooldown (30 ticks ~= 1.5s)
-        this.jungleBomberCooldown = 30;
+        // Start cooldown (15 ticks ~= 0.75s)
+        this.jungleBomberCooldown = 15;
+        // Sync to client HUD trackers immediately
+        this.setPowerCooldown(0, this.jungleBomberCooldown, 15);
     }
+
+    // HUD power state is now provided via synced trackers in GestaltBase
 }
