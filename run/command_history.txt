@@ -1,6 +1,3 @@
-/gamemode creative
-/gamemode survival
-/gamemode creative
 /gamemode survival
 /gamemode creative
 /time set day
@@ -48,3 +45,6 @@
 /time set day
 /gamemode creative
 /time set day
+/gamemode creative
+/time set day
+/gamemode survival
