@@ -159,6 +159,14 @@ public class ScorchedUtopia extends GestaltBase {
     }
 
     @Override
+    public void setOwner(PlayerEntity owner) {
+        super.setOwner(owner);
+        if (owner != null && !this.getWorld().isClient) {
+            this.loadPowerCooldownsFromOwner(owner);
+        }
+    }
+
+    @Override
     public net.minecraft.util.Identifier getGestaltId() {
         return net.minecraft.util.Identifier.of("gestaltresonance", "scorched_utopia");
     }

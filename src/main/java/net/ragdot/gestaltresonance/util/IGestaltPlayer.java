@@ -29,6 +29,10 @@ public interface IGestaltPlayer {
     void gestaltresonance$setGestaltLvl(net.minecraft.util.Identifier id, int lvl);
     int gestaltresonance$getGestaltLvl(net.minecraft.util.Identifier id);
 
+    void gestaltresonance$setGestaltPowerCooldown(net.minecraft.util.Identifier id, int powerIndex, int remainingTicks, int maxTicks);
+    int gestaltresonance$getGestaltPowerCooldownRemaining(net.minecraft.util.Identifier id, int powerIndex);
+    int gestaltresonance$getGestaltPowerCooldownMax(net.minecraft.util.Identifier id, int powerIndex);
+
     void gestaltresonance$resetAllGestaltData();
 
     // Amen Break passive: muffled movement (suppress vibration/footstep events)

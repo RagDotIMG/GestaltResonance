@@ -1,4 +1,3 @@
-/give item gestaltresonance:pokey_feather 3
 /give Player685 gestaltresonance:pokey_feather 3
 /give Player685 minecraft:rotten_flesh
 /give Player685 minecraft:gunpowder
@@ -48,3 +47,4 @@
 /gamemode creative
 /time set night
 /time set day
+/gamemode survival

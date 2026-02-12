@@ -311,6 +311,24 @@ public class GestaltBase extends MobEntity {
             }
             default -> {}
         }
+
+        // Persist to owner if available
+        if (owner != null) {
+            ((IGestaltPlayer) owner).gestaltresonance$setGestaltPowerCooldown(getGestaltId(), index, remaining, max);
+        }
+    }
+
+    public void loadPowerCooldownsFromOwner(PlayerEntity owner) {
+        if (owner == null || this.getWorld().isClient) return;
+        IGestaltPlayer gp = (IGestaltPlayer) owner;
+        Identifier id = getGestaltId();
+        for (int i = 0; i < 3; i++) {
+            int rem = gp.gestaltresonance$getGestaltPowerCooldownRemaining(id, i);
+            int max = gp.gestaltresonance$getGestaltPowerCooldownMax(id, i);
+            if (max > 0) {
+                this.setPowerCooldown(i, rem, max);
+            }
+        }
     }
 
     // (Note: single set of getPower* methods is defined above.)

@@ -7,6 +7,7 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Vec3d;
 import net.ragdot.gestaltresonance.entities.AmenBreak;
+import net.ragdot.gestaltresonance.entities.AmenBreakII;
 import net.ragdot.gestaltresonance.entities.gestaltframework.GestaltBase;
 import net.ragdot.gestaltresonance.entities.ScorchedUtopia;
 import net.ragdot.gestaltresonance.network.GestaltThrowPayload;
@@ -106,6 +107,20 @@ public class GestaltNetworking {
             );
             for (net.ragdot.gestaltresonance.entities.Spillways stand : spillwaysStands) {
                 stand.lachryma(player);
+            }
+        }
+
+        if (powerIndex == 1) {
+            ServerWorld world = player.getServerWorld();
+
+            // Amen Break (Tier II+): Ability 2 — Futurama
+            List<AmenBreakII> amenStands = world.getEntitiesByClass(
+                    AmenBreakII.class,
+                    player.getBoundingBox().expand(256.0),
+                    stand -> player.getUuid().equals(stand.getOwnerUuid())
+            );
+            for (AmenBreakII stand : amenStands) {
+                stand.futurama(player);
             }
         }
     }

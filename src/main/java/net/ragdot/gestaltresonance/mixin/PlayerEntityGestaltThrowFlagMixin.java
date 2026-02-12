@@ -45,6 +45,10 @@ public class PlayerEntityGestaltThrowFlagMixin implements IGestaltPlayer {
 
     @Unique
     private final java.util.Map<net.minecraft.util.Identifier, Integer> gestaltresonance$lvlMap = new java.util.HashMap<>();
+    @Unique
+    private final java.util.Map<String, Integer> gestaltresonance$powerRemainingCooldownMap = new java.util.HashMap<>();
+    @Unique
+    private final java.util.Map<String, Integer> gestaltresonance$powerMaxCooldownMap = new java.util.HashMap<>();
 
     // ===== Persistence of Gestalt stats (per-id) =====
     @org.spongepowered.asm.mixin.injection.Inject(method = "writeCustomDataToNbt", at = @At("TAIL"))
@@ -73,6 +77,20 @@ public class PlayerEntityGestaltThrowFlagMixin implements IGestaltPlayer {
         }
         root.put("lvl", lvlTag);
 
+        // Power Cooldown Remaining
+        net.minecraft.nbt.NbtCompound pRemTag = new net.minecraft.nbt.NbtCompound();
+        for (var e : this.gestaltresonance$powerRemainingCooldownMap.entrySet()) {
+            pRemTag.putInt(e.getKey(), e.getValue());
+        }
+        root.put("power_cd_rem", pRemTag);
+
+        // Power Cooldown Max
+        net.minecraft.nbt.NbtCompound pMaxTag = new net.minecraft.nbt.NbtCompound();
+        for (var e : this.gestaltresonance$powerMaxCooldownMap.entrySet()) {
+            pMaxTag.putInt(e.getKey(), e.getValue());
+        }
+        root.put("power_cd_max", pMaxTag);
+
         nbt.put("GestaltStats", root);
     }
 
@@ -85,6 +103,8 @@ public class PlayerEntityGestaltThrowFlagMixin implements IGestaltPlayer {
         this.gestaltresonance$staminaMap.clear();
         this.gestaltresonance$expMap.clear();
         this.gestaltresonance$lvlMap.clear();
+        this.gestaltresonance$powerRemainingCooldownMap.clear();
+        this.gestaltresonance$powerMaxCooldownMap.clear();
 
         // Stamina
         if (root.contains("stamina", net.minecraft.nbt.NbtElement.COMPOUND_TYPE)) {
@@ -113,6 +133,22 @@ public class PlayerEntityGestaltThrowFlagMixin implements IGestaltPlayer {
                 try {
                     this.gestaltresonance$lvlMap.put(net.minecraft.util.Identifier.of(key), lvlTag.getInt(key));
                 } catch (IllegalArgumentException ignored) {}
+            }
+        }
+
+        // Power Cooldown Remaining
+        if (root.contains("power_cd_rem", net.minecraft.nbt.NbtElement.COMPOUND_TYPE)) {
+            net.minecraft.nbt.NbtCompound pRemTag = root.getCompound("power_cd_rem");
+            for (String key : pRemTag.getKeys()) {
+                this.gestaltresonance$powerRemainingCooldownMap.put(key, pRemTag.getInt(key));
+            }
+        }
+
+        // Power Cooldown Max
+        if (root.contains("power_cd_max", net.minecraft.nbt.NbtElement.COMPOUND_TYPE)) {
+            net.minecraft.nbt.NbtCompound pMaxTag = root.getCompound("power_cd_max");
+            for (String key : pMaxTag.getKeys()) {
+                this.gestaltresonance$powerMaxCooldownMap.put(key, pMaxTag.getInt(key));
             }
         }
     }
@@ -223,9 +259,30 @@ public class PlayerEntityGestaltThrowFlagMixin implements IGestaltPlayer {
     }
 
     @Override
+    public void gestaltresonance$setGestaltPowerCooldown(net.minecraft.util.Identifier id, int powerIndex, int remainingTicks, int maxTicks) {
+        String key = id.toString() + ":" + powerIndex;
+        this.gestaltresonance$powerRemainingCooldownMap.put(key, remainingTicks);
+        this.gestaltresonance$powerMaxCooldownMap.put(key, maxTicks);
+    }
+
+    @Override
+    public int gestaltresonance$getGestaltPowerCooldownRemaining(net.minecraft.util.Identifier id, int powerIndex) {
+        String key = id.toString() + ":" + powerIndex;
+        return this.gestaltresonance$powerRemainingCooldownMap.getOrDefault(key, 0);
+    }
+
+    @Override
+    public int gestaltresonance$getGestaltPowerCooldownMax(net.minecraft.util.Identifier id, int powerIndex) {
+        String key = id.toString() + ":" + powerIndex;
+        return this.gestaltresonance$powerMaxCooldownMap.getOrDefault(key, 0);
+    }
+
+    @Override
     public void gestaltresonance$resetAllGestaltData() {
         this.gestaltresonance$staminaMap.clear();
         this.gestaltresonance$expMap.clear();
         this.gestaltresonance$lvlMap.clear();
+        this.gestaltresonance$powerRemainingCooldownMap.clear();
+        this.gestaltresonance$powerMaxCooldownMap.clear();
     }
 }

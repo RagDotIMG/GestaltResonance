@@ -32,7 +32,14 @@ public abstract class PlayerEntityMixin {
         net.minecraft.util.Identifier[] ids = {
             net.minecraft.util.Identifier.of("gestaltresonance", "gestalt"),
             net.minecraft.util.Identifier.of("gestaltresonance", "scorched_utopia"),
-            net.minecraft.util.Identifier.of("gestaltresonance", "amen_break")
+            net.minecraft.util.Identifier.of("gestaltresonance", "amen_break"),
+            net.minecraft.util.Identifier.of("gestaltresonance", "scorched_utopia_ii"),
+            net.minecraft.util.Identifier.of("gestaltresonance", "scorched_utopia_iii"),
+            net.minecraft.util.Identifier.of("gestaltresonance", "amen_break_ii"),
+            net.minecraft.util.Identifier.of("gestaltresonance", "amen_break_iii"),
+            net.minecraft.util.Identifier.of("gestaltresonance", "spillways"),
+            net.minecraft.util.Identifier.of("gestaltresonance", "spillways_ii"),
+            net.minecraft.util.Identifier.of("gestaltresonance", "spillways_iii")
         };
 
         for (net.minecraft.util.Identifier id : ids) {

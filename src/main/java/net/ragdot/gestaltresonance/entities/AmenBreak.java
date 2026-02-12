@@ -34,6 +34,23 @@ public class AmenBreak extends GestaltBase {
     }
 
     @Override
+    public void setOwner(PlayerEntity owner) {
+        super.setOwner(owner);
+        if (owner != null && !this.getWorld().isClient) {
+            // Restore persistent cooldowns when re-summoned
+            IGestaltPlayer gp = (IGestaltPlayer) owner;
+            this.jungleBomberCooldown = gp.gestaltresonance$getGestaltPowerCooldownRemaining(getGestaltId(), 0);
+            this.loadPowerCooldownsFromOwner(owner);
+        }
+    }
+
+    @Override
+    public int getPowerCount() {
+        // Tier I Amen Break only has its first power.
+        return 1;
+    }
+
+    @Override
     protected double getHeightOffset() {
         return 0.4;
     }

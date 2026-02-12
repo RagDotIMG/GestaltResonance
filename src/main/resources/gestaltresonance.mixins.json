@@ -8,11 +8,18 @@
     "PlayerEntityGestaltThrowFlagMixin",
     "LivingEntityFallDamageMixin",
     "LivingEntityKnockbackMixin",
+    "LivingEntityFuturamaDeathMixin",
     "GestaltAlphaMixin",
     "ServerPlayNetworkHandlerMixin",
     "EntityStepAndFallSoundMuteMixin",
     "EntityVibrationSuppressMixin",
-    "SculkSensorVibrationCallbackMixin"
+    "SculkSensorVibrationCallbackMixin",
+    "ServerPlayerEntityMixin"
+    ,
+    "ServerWorldFuturamaTickMixin",
+    "WorldFuturamaBlockCaptureMixin",
+    "WorldFuturamaExplosionCaptureMixin",
+    "EntityFuturamaRemovalCaptureMixin"
   ],
   "client": [
     "MinecraftClientMixin"
