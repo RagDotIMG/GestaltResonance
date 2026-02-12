@@ -10,7 +10,7 @@ import net.ragdot.gestaltresonance.Gestaltresonance;
 
 public class RottingStatusEffect extends StatusEffect {
     public RottingStatusEffect() {
-        super(StatusEffectCategory.HARMFUL, 0x4d5d2c); // Dark brownish-green color
+        super(StatusEffectCategory.HARMFUL, 0x801a1a); // Brownish-red color to match ScorchedUtopia particles
         
         // -20% Speed
         this.addAttributeModifier(EntityAttributes.GENERIC_MOVEMENT_SPEED,

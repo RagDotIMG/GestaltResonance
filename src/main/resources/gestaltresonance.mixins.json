@@ -19,7 +19,8 @@
     "ServerWorldFuturamaTickMixin",
     "WorldFuturamaBlockCaptureMixin",
     "WorldFuturamaExplosionCaptureMixin",
-    "EntityFuturamaRemovalCaptureMixin"
+    "EntityFuturamaRemovalCaptureMixin",
+    "LivingEntityRottingDeathMixin"
   ],
   "client": [
     "MinecraftClientMixin"
