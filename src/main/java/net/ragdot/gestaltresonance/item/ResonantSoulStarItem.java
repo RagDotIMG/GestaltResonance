@@ -42,8 +42,8 @@ public class ResonantSoulStarItem extends Item {
             GestaltBase current = gestalts.get(0);
             Identifier currentId = current.getGestaltId();
 
-            // Must be level 5 and have a Tier 3 mapping from current (Tier 2) id
-            Identifier nextId = current.getLvl() >= 5 ? GestaltTiers.getTier3(currentId) : null;
+            // Must be level 8 and have a Tier 3 mapping from current (Tier 2) id
+            Identifier nextId = current.getLvl() >= 8 ? GestaltTiers.getTier3(currentId) : null;
             if (nextId == null) {
                 // Player has a Gestalt but it doesn't fulfill the requirements
                 user.sendMessage(net.minecraft.text.Text.literal("Your Gestalt is not strong enough yet."), true);

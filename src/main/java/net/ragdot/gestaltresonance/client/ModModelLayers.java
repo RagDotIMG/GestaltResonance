@@ -9,6 +9,10 @@ public class ModModelLayers {
             new EntityModelLayer(Identifier.of(Gestaltresonance.MOD_ID, "scorched_utopia"), "main");
     public static final EntityModelLayer AMEN_BREAK =
             new EntityModelLayer(Identifier.of(Gestaltresonance.MOD_ID, "amen_break"), "main");
+    public static final EntityModelLayer AMEN_BREAK_II =
+            new EntityModelLayer(Identifier.of(Gestaltresonance.MOD_ID, "amen_break_ii"), "main");
+    public static final EntityModelLayer AMEN_BREAK_III =
+            new EntityModelLayer(Identifier.of(Gestaltresonance.MOD_ID, "amen_break_iii"), "main");
     public static final EntityModelLayer SPILLWAYS =
             new EntityModelLayer(Identifier.of(Gestaltresonance.MOD_ID, "spillways"), "main");
     public static final EntityModelLayer POP_BUD =

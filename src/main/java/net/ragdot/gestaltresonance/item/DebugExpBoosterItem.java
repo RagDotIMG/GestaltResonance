@@ -13,10 +13,10 @@ import java.util.List;
 
 /**
  * Testing utility item: grants 600 Gestalt EXP to the currently summoned, owned Gestalt.
- * This is intended to quickly boost a Gestalt to level 5 for upgrade testing.
+ * This is intended to quickly boost a Gestalt to level 8 for upgrade testing.
  */
 public class DebugExpBoosterItem extends Item {
-    private static final int GRANT_AMOUNT = 600; // Enough for 4 levels at 120 exp/level
+    private static final int GRANT_AMOUNT = 2000; // Enough to reach higher levels
 
     public DebugExpBoosterItem(Settings settings) {
         super(settings);
@@ -48,7 +48,7 @@ public class DebugExpBoosterItem extends Item {
             int maxExp = current.getMaxExp();
 
             // Chain level-ups correctly using GestaltBase.setExp semantics
-            while (remaining > 0 && current.getLvl() < 5) {
+            while (remaining > 0 && current.getLvl() < 8) {
                 int curExp = current.getExp();
                 int need = Math.max(0, maxExp - curExp);
                 if (need == 0) {
@@ -63,8 +63,8 @@ public class DebugExpBoosterItem extends Item {
                 }
             }
 
-            // If we still have remaining after reaching level 5, fill EXP bar to max
-            if (current.getLvl() >= 5) {
+            // If we still have remaining after reaching level 8, fill EXP bar to max
+            if (current.getLvl() >= 8) {
                 current.setExp(maxExp);
             }
 
@@ -73,7 +73,7 @@ public class DebugExpBoosterItem extends Item {
                 stack.decrement(1);
             }
 
-            user.sendMessage(Text.literal("Granted 600 Gestalt EXP."), true);
+            user.sendMessage(Text.literal("Granted 2000 Gestalt EXP."), true);
             return TypedActionResult.success(stack, false);
         }
 

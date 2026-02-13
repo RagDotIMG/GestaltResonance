@@ -7,6 +7,8 @@ import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityModelLayerRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
+import net.ragdot.gestaltresonance.client.model.AmenBreakIIModel;
+import net.ragdot.gestaltresonance.client.model.AmenBreakIIIModel;
 import net.ragdot.gestaltresonance.client.model.AmenBreakModel;
 import net.ragdot.gestaltresonance.client.model.SpillwaysModel;
 import net.ragdot.gestaltresonance.entities.gestaltframework.GestaltBase;
@@ -26,6 +28,7 @@ import net.minecraft.client.render.entity.model.BipedEntityModel;
 import net.minecraft.client.render.entity.model.EntityModelLayers;
 import net.minecraft.client.util.InputUtil;
 import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.client.render.entity.model.SinglePartEntityModel;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.Identifier;
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
@@ -274,6 +277,14 @@ public class GestaltresonanceClient implements ClientModInitializer {
                 ModModelLayers.AMEN_BREAK,
                 AmenBreakModel::getTexturedModelData
         );
+        EntityModelLayerRegistry.registerModelLayer(
+                ModModelLayers.AMEN_BREAK_II,
+                AmenBreakIIModel::getTexturedModelData
+        );
+        EntityModelLayerRegistry.registerModelLayer(
+                ModModelLayers.AMEN_BREAK_III,
+                AmenBreakIIIModel::getTexturedModelData
+        );
 
         EntityRendererRegistry.register(
                 Gestaltresonance.AMEN_BREAK,
@@ -419,7 +430,11 @@ public class GestaltresonanceClient implements ClientModInitializer {
 
     // ===== Renderer that uses Blockbench model for AmenBreak =====
     public static class AmenBreakRenderer
-            extends MobEntityRenderer<AmenBreak, AmenBreakModel> {
+            extends MobEntityRenderer<AmenBreak, SinglePartEntityModel<AmenBreak>> {
+
+        private final AmenBreakModel modelI;
+        private final AmenBreakIIModel modelII;
+        private final AmenBreakIIIModel modelIII;
 
         private static Identifier resolveTexture(AmenBreak entity) {
             String path = entity.getGestaltId().getPath();
@@ -431,11 +446,22 @@ public class GestaltresonanceClient implements ClientModInitializer {
                     new AmenBreakModel(ctx.getPart(ModModelLayers.AMEN_BREAK)),
                     0.5f
             );
+            this.modelI = (AmenBreakModel) this.getModel();
+            this.modelII = new AmenBreakIIModel(ctx.getPart(ModModelLayers.AMEN_BREAK_II));
+            this.modelIII = new AmenBreakIIIModel(ctx.getPart(ModModelLayers.AMEN_BREAK_III));
         }
 
         @Override
         public void render(AmenBreak entity, float yaw, float tickDelta,
                            MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light) {
+            String path = entity.getGestaltId().getPath();
+            if (path.contains("_iii")) {
+                this.model = modelIII;
+            } else if (path.contains("_ii")) {
+                this.model = modelII;
+            } else {
+                this.model = modelI;
+            }
             super.render(entity, yaw, tickDelta, matrices, vertexConsumers, light);
         }
 
