@@ -17,6 +17,7 @@
   "item.gestaltresonance.soul_essence": "Soul Essence",
   "item.gestaltresonance.resonant_soul_star": "Resonant Soul Star",
   "item.gestaltresonance.debug_exp_booster": "Debug EXP Booster",
+  "item.gestaltresonance.debug_cooldown_resetter": "Debug Cooldown Resetter",
   "itemgroup.gestaltresonance.gestalt_resonance": "Gestalt Resonance",
   "effect.gestaltresonance.rotting": "Rotting",
   "effect.gestaltresonance.blasted": "Blasted",

@@ -34,6 +34,13 @@ public class Spillways extends GestaltBase {
     }
 
     @Override
+    public void resetCooldowns() {
+        super.resetCooldowns();
+        this.lachrymaCooldown = 0;
+        this.tearsForFearsCooldown = 0;
+    }
+
+    @Override
     public void tick() {
         super.tick();
         if (!this.getWorld().isClient) {

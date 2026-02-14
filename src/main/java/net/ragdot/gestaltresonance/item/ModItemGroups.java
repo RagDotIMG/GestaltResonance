@@ -32,6 +32,7 @@ public class ModItemGroups {
                         entries.add(ModItems.SOUL_ESSENCE);
                         entries.add(ModItems.RESONANT_SOUL_STAR);
                         entries.add(ModItems.DEBUG_EXP_BOOSTER);
+                        entries.add(ModItems.DEBUG_COOLDOWN_RESETTER);
                         // Pop Sprout no longer exposed in creative tab for testing
                     }).build());
 

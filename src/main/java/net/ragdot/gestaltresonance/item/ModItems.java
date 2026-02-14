@@ -25,6 +25,7 @@ public class ModItems {
     public static final Item SOUL_ESSENCE = registerItem("soul_essence", new SoulEssenceItem(new Item.Settings()));
     public static final Item RESONANT_SOUL_STAR = registerItem("resonant_soul_star", new ResonantSoulStarItem(new Item.Settings()));
     public static final Item DEBUG_EXP_BOOSTER = registerItem("debug_exp_booster", new DebugExpBoosterItem(new Item.Settings()));
+    public static final Item DEBUG_COOLDOWN_RESETTER = registerItem("debug_cooldown_resetter", new DebugCooldownResetItem(new Item.Settings()));
 
     private static Item registerItem(String name, Item item) {
         return Registry.register(Registries.ITEM, Identifier.of(Gestaltresonance.MOD_ID, name), item);

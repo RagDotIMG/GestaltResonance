@@ -15,6 +15,7 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.ragdot.gestaltresonance.effect.ModStatusEffects;
+import net.ragdot.gestaltresonance.entities.CiriceEntity;
 import net.ragdot.gestaltresonance.entities.AmenBreak;
 import net.ragdot.gestaltresonance.entities.AmenBreakII;
 import net.ragdot.gestaltresonance.entities.AmenBreakIII;
@@ -126,6 +127,15 @@ public class Gestaltresonance implements ModInitializer {
                     .create(SpillwaysIII::new, SpawnGroup.MISC)
                     .dimensions(0.5f, 1.6f)
                     .build("spillways_iii")
+    );
+
+    public static final EntityType<CiriceEntity> CIRICE_ENTITY = Registry.register(
+            Registries.ENTITY_TYPE,
+            Identifier.of(MOD_ID, "cirice"),
+            EntityType.Builder
+                    .create(CiriceEntity::new, SpawnGroup.MISC)
+                    .dimensions(10.0f, 10.0f)
+                    .build("cirice")
     );
 
     public static final EntityType<PopBud> POP_BUD = Registry.register(

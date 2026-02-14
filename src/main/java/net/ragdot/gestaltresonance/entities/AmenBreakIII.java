@@ -18,6 +18,12 @@ public class AmenBreakIII extends AmenBreakII {
     }
 
     @Override
+    public void resetCooldowns() {
+        super.resetCooldowns();
+        this.breakCoreCooldown = 0;
+    }
+
+    @Override
     public void tick() {
         super.tick();
         if (!this.getWorld().isClient) {

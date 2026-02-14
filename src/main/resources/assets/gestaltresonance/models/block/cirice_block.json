@@ -1,0 +1,12 @@
+{
+  "parent": "minecraft:block/cube",
+  "textures": {
+    "particle": "gestaltresonance:block/cirice_water",
+    "down": "gestaltresonance:block/cirice_water",
+    "up": "gestaltresonance:block/cirice_water",
+    "north": "gestaltresonance:block/cirice_water",
+    "south": "gestaltresonance:block/cirice_water",
+    "west": "gestaltresonance:block/cirice_water",
+    "east": "gestaltresonance:block/cirice_water"
+  }
+}

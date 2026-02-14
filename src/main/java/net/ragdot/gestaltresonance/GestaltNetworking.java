@@ -157,6 +157,16 @@ public class GestaltNetworking {
             for (net.ragdot.gestaltresonance.entities.AmenBreakIII stand : amenStands) {
                 stand.breakCore(player);
             }
+
+            // Spillways (Tier III): Ability 3 — Cirice
+            List<net.ragdot.gestaltresonance.entities.SpillwaysIII> spillStands = world.getEntitiesByClass(
+                    net.ragdot.gestaltresonance.entities.SpillwaysIII.class,
+                    player.getBoundingBox().expand(256.0),
+                    stand -> player.getUuid().equals(stand.getOwnerUuid())
+            );
+            for (net.ragdot.gestaltresonance.entities.SpillwaysIII stand : spillStands) {
+                stand.cirice(player);
+            }
         }
     }
 

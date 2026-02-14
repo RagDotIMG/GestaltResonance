@@ -38,6 +38,14 @@ import net.ragdot.gestaltresonance.client.gui.StaminaHudRenderer;
 import org.lwjgl.glfw.GLFW;
 import net.ragdot.gestaltresonance.Gestaltresonance;
 import net.ragdot.gestaltresonance.client.model.ScorchedUtopiaModel;
+import net.minecraft.client.render.VertexConsumer;
+import net.minecraft.client.render.OverlayTexture;
+import net.minecraft.util.math.RotationAxis;
+import net.minecraft.util.math.Vec3d;
+import net.minecraft.client.render.entity.model.EntityModel;
+import net.minecraft.client.render.entity.model.EntityModelLayers;
+import net.minecraft.entity.passive.PufferfishEntity;
+import net.ragdot.gestaltresonance.entities.CiriceEntity;
 import net.ragdot.gestaltresonance.entities.AmenBreak;
 import net.ragdot.gestaltresonance.entities.ScorchedUtopia;
 import net.ragdot.gestaltresonance.entities.Spillways;
@@ -238,6 +246,7 @@ public class GestaltresonanceClient implements ClientModInitializer {
         // Ensure correct transparency for flower-like blocks and water-surface pad
         BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.POPSPROUT, RenderLayer.getCutout());
         BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.POP_PAD, RenderLayer.getCutout());
+        BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.CIRICE_BLOCK, RenderLayer.getTranslucent());
 
         EntityRendererRegistry.register(Gestaltresonance.TEARS_FOR_FEARS, TearsForFearsRenderer::new);
 
@@ -330,6 +339,134 @@ public class GestaltresonanceClient implements ClientModInitializer {
         );
 
         HudRenderCallback.EVENT.register(new StaminaHudRenderer());
+
+        EntityRendererRegistry.register(
+                Gestaltresonance.CIRICE_ENTITY,
+                CiriceRenderer::new
+        );
+    }
+
+    // ===== Renderer for Cirice Entity (Water Sphere + Pufferfish) =====
+    public static class CiriceRenderer extends net.minecraft.client.render.entity.EntityRenderer<CiriceEntity> {
+        private final EntityModel<PufferfishEntity> pufferModelSmall;
+        private final EntityModel<PufferfishEntity> pufferModelMedium;
+        private final EntityModel<PufferfishEntity> pufferModelLarge;
+        private static final Identifier PUFFER_TEXTURE = Identifier.of("minecraft", "textures/entity/fish/pufferfish.png");
+        private static final Identifier WATER_TEXTURE = Identifier.of(Gestaltresonance.MOD_ID, "textures/block/cirice_water.png");
+
+        public CiriceRenderer(EntityRendererFactory.Context ctx) {
+            super(ctx);
+            this.pufferModelSmall = new net.minecraft.client.render.entity.model.EntityModel<PufferfishEntity>() {
+                private final net.minecraft.client.model.ModelPart root = ctx.getPart(EntityModelLayers.PUFFERFISH_SMALL);
+                @Override public void setAngles(PufferfishEntity entity, float limbAngle, float limbDistance, float animationProgress, float headYaw, float headPitch) {}
+                @Override public void render(MatrixStack matrices, VertexConsumer vertices, int light, int overlay, int color) {
+                    root.render(matrices, vertices, light, overlay, color);
+                }
+            };
+            this.pufferModelMedium = new net.minecraft.client.render.entity.model.EntityModel<PufferfishEntity>() {
+                private final net.minecraft.client.model.ModelPart root = ctx.getPart(EntityModelLayers.PUFFERFISH_MEDIUM);
+                @Override public void setAngles(PufferfishEntity entity, float limbAngle, float limbDistance, float animationProgress, float headYaw, float headPitch) {}
+                @Override public void render(MatrixStack matrices, VertexConsumer vertices, int light, int overlay, int color) {
+                    root.render(matrices, vertices, light, overlay, color);
+                }
+            };
+            this.pufferModelLarge = new net.minecraft.client.render.entity.model.EntityModel<PufferfishEntity>() {
+                private final net.minecraft.client.model.ModelPart root = ctx.getPart(EntityModelLayers.PUFFERFISH_BIG);
+                @Override public void setAngles(PufferfishEntity entity, float limbAngle, float limbDistance, float animationProgress, float headYaw, float headPitch) {}
+                @Override public void render(MatrixStack matrices, VertexConsumer vertices, int light, int overlay, int color) {
+                    root.render(matrices, vertices, light, overlay, color);
+                }
+            };
+        }
+
+        @Override
+        public void render(CiriceEntity entity, float entityYaw, float tickDelta, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light) {
+            super.render(entity, entityYaw, tickDelta, matrices, vertexConsumers, light);
+            
+            float age = (float)entity.age + tickDelta;
+            float pulseFreq = (float)Math.PI * 0.2f;
+            float pulse = MathHelper.sin(age * pulseFreq);
+            float alpha = 0.4f + pulse * 0.1f; 
+            float boost = 1.0f + (pulse + 1.0f) * 0.2f;
+
+            // Render 10x10 Sphere (radius 5)
+            matrices.push();
+            VertexConsumer vc = vertexConsumers.getBuffer(RenderLayer.getEntityTranslucentEmissive(WATER_TEXTURE));
+            renderSphere(matrices, vc, 5.0f, age, alpha, boost);
+            // Render a second slightly larger layer with offset distortion
+            renderSphere(matrices, vc, 5.1f, age + 50.0f, alpha * 0.5f, boost);
+            matrices.pop();
+
+            // Render pufferfish
+            for (int i = 0; i < 3; i++) {
+                Vec3d fishPos = entity.getPufferfishPos(i);
+                matrices.push();
+                matrices.translate(fishPos.x - entity.getX(), fishPos.y - entity.getY(), fishPos.z - entity.getZ());
+                
+                // Rotations to make it look slightly more natural
+                matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(MathHelper.sin(age * 0.1f + i) * 360f));
+                matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(MathHelper.sin(age * 0.05f + i) * 20f));
+
+                float size = 0.6f;
+                matrices.scale(size, size, size);
+                
+                VertexConsumer vcFish = vertexConsumers.getBuffer(RenderLayer.getEntityCutout(PUFFER_TEXTURE));
+                
+                // Switch model based on pulse to mimic pufferfish behavior (or just pick one)
+                // Let's make them "puff" up periodically
+                EntityModel<PufferfishEntity> model;
+                float puff = MathHelper.sin(age * 0.05f + i * 2f);
+                if (puff > 0.7f) {
+                    model = pufferModelLarge;
+                } else if (puff > 0.3f) {
+                    model = pufferModelMedium;
+                } else {
+                    model = pufferModelSmall;
+                }
+                
+                model.render(matrices, vcFish, light, OverlayTexture.DEFAULT_UV, -1);
+                matrices.pop();
+            }
+        }
+
+        private void renderSphere(MatrixStack matrices, VertexConsumer vc, float radius, float age, float alpha, float boost) {
+            int segments = 16;
+            MatrixStack.Entry entry = matrices.peek();
+            int a = (int)(alpha * 255.0f);
+            int rgb = MathHelper.clamp((int)(255.0f * boost), 0, 255);
+            int light = 15728880;
+
+            for (int i = 0; i < segments; i++) {
+                float lat0 = (float)Math.PI * (-0.5f + (float)i / segments);
+                float z0 = (float)Math.sin(lat0) * radius;
+                float r0 = (float)Math.cos(lat0) * radius;
+
+                float lat1 = (float)Math.PI * (-0.5f + (float)(i + 1) / segments);
+                float z1 = (float)Math.sin(lat1) * radius;
+                float r1 = (float)Math.cos(lat1) * radius;
+
+                for (int j = 0; j <= segments; j++) {
+                    float lng = (float)(2.0 * Math.PI * (float)j / segments);
+                    float x = (float)Math.cos(lng);
+                    float y = (float)Math.sin(lng);
+
+                    // Apply UV distortion
+                    float uDist = MathHelper.sin(age * 0.4f) * 0.01f;
+                    float vDist = MathHelper.cos(age * 0.5f) * 0.01f;
+                    
+                    float u = (float)j / segments + uDist;
+                    float v = (float)i / segments + vDist;
+
+                    vc.vertex(entry, x * r0, y * r0, z0).color(rgb, rgb, rgb, a).texture(u, v).overlay(OverlayTexture.DEFAULT_UV).light(light).normal(entry, x, y, (float)Math.sin(lat0));
+                    vc.vertex(entry, x * r1, y * r1, z1).color(rgb, rgb, rgb, a).texture(u, v + 1.0f/segments).overlay(OverlayTexture.DEFAULT_UV).light(light).normal(entry, x, y, (float)Math.sin(lat1));
+                }
+            }
+        }
+
+        @Override
+        public Identifier getTexture(CiriceEntity entity) {
+            return PUFFER_TEXTURE;
+        }
     }
 
     // ===== Renderer for Pop Sprout =====

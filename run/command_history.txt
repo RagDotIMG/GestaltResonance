@@ -1,13 +1,3 @@
-/give Player966 gestaltresonance:blasted_feather 2
-/give Player416 gestaltresonance:inked_feather 2
-/time set day
-/gamemode creative
-/gamemode survival
-/gamemode creative
-/time set day
-/gamemode survival
-/gamemode creative
-/gamemode survival
 /time set day
 /gamemode creative
 /time set day
@@ -47,4 +37,14 @@
 /gamemode creative
 /time set day
 /kill all
+/time set day
+/gamemode creative
+/time set day
+/gamemode survival
+/gamemode creative
+/weather clear
+/gamemode survival
+/gamemode creative
+/gamemode survival
+/gamemode creative
 /time set day

@@ -291,6 +291,13 @@ public class GestaltBase extends MobEntity {
 
     // NOTE: We must also add our power cooldown trackers inside the primary initDataTracker above.
 
+    public void resetCooldowns() {
+        if (this.getWorld().isClient) return;
+        for (int i = 0; i < 3; i++) {
+            this.setPowerCooldown(i, 0, getPowerMaxCooldownTicks(i));
+        }
+    }
+
     protected void setPowerCooldown(int index, int remaining, int max) {
         // Server-side authority; values are synced to clients by DataTracker
         if (this.getWorld().isClient) return;

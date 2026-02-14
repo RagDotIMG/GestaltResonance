@@ -22,6 +22,12 @@ public class AmenBreak extends GestaltBase {
     }
 
     @Override
+    public void resetCooldowns() {
+        super.resetCooldowns();
+        this.jungleBomberCooldown = 0;
+    }
+
+    @Override
     public void tick() {
         super.tick();
         // Server-side cooldown decrement

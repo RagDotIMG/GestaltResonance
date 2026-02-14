@@ -19,6 +19,12 @@ public class AmenBreakII extends AmenBreak {
     }
 
     @Override
+    public void resetCooldowns() {
+        super.resetCooldowns();
+        this.futuramaCooldown = 0;
+    }
+
+    @Override
     public void tick() {
         super.tick();
         if (!this.getWorld().isClient) {
