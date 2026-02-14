@@ -17,7 +17,7 @@ import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import net.minecraft.sound.SoundEvent;
 
 @Mixin(PlayerEntity.class)
-public abstract class PlayerEntityMixin {
+public abstract class PlayerEntityMixin implements IGestaltPlayer {
 
     @Inject(method = "writeCustomDataToNbt", at = @At("TAIL"))
     private void gestaltresonance$writeGestaltData(net.minecraft.nbt.NbtCompound nbt, CallbackInfo ci) {
@@ -92,6 +92,13 @@ public abstract class PlayerEntityMixin {
     }
 
     @Inject(method = "travel", at = @At("HEAD"), cancellable = true)
+    private void gestaltresonance$cancelTravelDuringIncapacitation(Vec3d movementInput, CallbackInfo ci) {
+        if (this.gestaltresonance$isIncapacitated()) {
+            ci.cancel();
+        }
+    }
+
+    @Inject(method = "travel", at = @At("HEAD"), cancellable = true)
     private void gestaltresonance$cancelTravelDuringLedgeGrab(Vec3d movementInput, CallbackInfo ci) {
         PlayerEntity player = (PlayerEntity) (Object) this;
         if (((IGestaltPlayer) player).gestaltresonance$isLedgeGrabbing()) {
@@ -99,10 +106,74 @@ public abstract class PlayerEntityMixin {
         }
     }
 
+    @Inject(method = "tick", at = @At("TAIL"))
+    private void gestaltresonance$tickBreakCore(CallbackInfo ci) {
+        IGestaltPlayer gp = (IGestaltPlayer) this;
+        int ticks = gp.gestaltresonance$getBreakCoreTicks();
+        if (ticks > 0) {
+            gp.gestaltresonance$setBreakCoreTicks(ticks - 1);
+        }
+    }
+
+    @Inject(method = "attack", at = @At("HEAD"), cancellable = true)
+    private void gestaltresonance$cancelAttackDuringBreakCore(net.minecraft.entity.Entity target, CallbackInfo ci) {
+        if (((IGestaltPlayer) this).gestaltresonance$getBreakCoreTicks() > 0) {
+            ci.cancel();
+        }
+    }
+
+    @Inject(method = "interact", at = @At("HEAD"), cancellable = true)
+    private void gestaltresonance$cancelInteractDuringBreakCore(net.minecraft.entity.Entity entity, net.minecraft.util.Hand hand, org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable<net.minecraft.util.ActionResult> cir) {
+        if (((IGestaltPlayer) this).gestaltresonance$getBreakCoreTicks() > 0) {
+            cir.setReturnValue(net.minecraft.util.ActionResult.PASS);
+        }
+    }
+
+    @Inject(method = "canFoodHeal", at = @At("HEAD"), cancellable = true)
+    private void gestaltresonance$cancelItemPickupDuringBreakCore(org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable<Boolean> cir) {
+        if (((IGestaltPlayer) this).gestaltresonance$getBreakCoreTicks() > 0) {
+            cir.setReturnValue(false);
+        }
+    }
+
+    @Inject(method = "collideWithEntity", at = @At("HEAD"), cancellable = true)
+    private void gestaltresonance$cancelEntityCollisionDuringBreakCore(net.minecraft.entity.Entity entity, org.spongepowered.asm.mixin.injection.callback.CallbackInfo ci) {
+        if (((IGestaltPlayer) this).gestaltresonance$getBreakCoreTicks() > 0) {
+            if (entity instanceof net.minecraft.entity.ItemEntity || entity instanceof net.minecraft.entity.ExperienceOrbEntity) {
+                ci.cancel();
+            }
+        }
+    }
+
+    @Inject(method = "dropItem(Lnet/minecraft/item/ItemStack;ZZ)Lnet/minecraft/entity/ItemEntity;", at = @At("HEAD"), cancellable = true)
+    private void gestaltresonance$cancelItemDropDuringBreakCore(net.minecraft.item.ItemStack stack, boolean throwRandomly, boolean retainOwnership, org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable<net.minecraft.entity.ItemEntity> cir) {
+        if (((IGestaltPlayer) this).gestaltresonance$getBreakCoreTicks() > 0) {
+            cir.setReturnValue(null);
+        }
+    }
+
+    @Inject(method = "canHarvest", at = @At("HEAD"), cancellable = true)
+    private void gestaltresonance$cancelBlockInteractDuringBreakCore(net.minecraft.block.BlockState state, org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable<Boolean> cir) {
+        if (((IGestaltPlayer) this).gestaltresonance$getBreakCoreTicks() > 0) {
+            cir.setReturnValue(false);
+        }
+    }
+
+    @Inject(method = "isBlockBreakingRestricted", at = @At("HEAD"), cancellable = true)
+    private void gestaltresonance$isBlockBreakingRestrictedDuringBreakCore(net.minecraft.world.World world, net.minecraft.util.math.BlockPos pos, net.minecraft.world.GameMode gameMode, org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable<Boolean> cir) {
+        if (((IGestaltPlayer) this).gestaltresonance$getBreakCoreTicks() > 0) {
+            cir.setReturnValue(true);
+        }
+    }
+
     @ModifyVariable(method = "damage", at = @At("HEAD"), argsOnly = true)
     private float gestaltresonance$modifyDamageAmount(float amount, DamageSource source) {
         PlayerEntity player = (PlayerEntity) (Object) this;
         IGestaltPlayer gestaltPlayer = (IGestaltPlayer) player;
+
+        if (gestaltPlayer.gestaltresonance$getBreakCoreTicks() > 0) {
+            return 0.0f; // Invulnerable during Break Core
+        }
 
         if (gestaltPlayer.gestaltresonance$isGuarding()) {
             // Find active gestalt to check stamina
@@ -129,6 +200,13 @@ public abstract class PlayerEntityMixin {
             }
         }
         return amount;
+    }
+
+    @Inject(method = "jump", at = @At("HEAD"), cancellable = true)
+    private void gestaltresonance$cancelJumpWhileIncapacitated(CallbackInfo ci) {
+        if (this.gestaltresonance$isIncapacitated()) {
+            ci.cancel();
+        }
     }
 
     @Inject(method = "jump", at = @At("TAIL"))
@@ -175,6 +253,20 @@ public abstract class PlayerEntityMixin {
         }
 
         // Removed ledge grab cooldown; input/airborne gating prevents same-press grabs
+    }
+
+    @Inject(method = "tick", at = @At("TAIL"))
+    private void gestaltresonance$handleIncapacitation(CallbackInfo ci) {
+        if (this.gestaltresonance$isIncapacitated()) {
+            PlayerEntity player = (PlayerEntity) (Object) this;
+            player.setVelocity(Vec3d.ZERO);
+            player.velocityDirty = true;
+            player.velocityModified = true;
+            if (player.getWorld().isClient) {
+                // Keep UI/Hand stable
+                player.handSwinging = false;
+            }
+        }
     }
 
     @Inject(method = "tick", at = @At("TAIL"))

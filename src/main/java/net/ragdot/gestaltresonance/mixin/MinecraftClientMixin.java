@@ -19,6 +19,10 @@ public class MinecraftClientMixin {
     @Inject(method = "doItemUse", at = @At("HEAD"), cancellable = true)
     private void gestaltresonance$cancelItemUseWhileGuarding(CallbackInfo ci) {
         if (player != null) {
+            if (((IGestaltPlayer) player).gestaltresonance$isIncapacitated()) {
+                ci.cancel();
+                return;
+            }
             boolean isGuarding = ((IGestaltPlayer) player).gestaltresonance$isGuarding();
             // Also check if the guard keys are currently being pressed to catch the first tick
             // We only block if BOTH are pressed, which is the start condition for guarding.
@@ -32,8 +36,11 @@ public class MinecraftClientMixin {
 
     @Inject(method = "handleBlockBreaking", at = @At("HEAD"), cancellable = true)
     private void gestaltresonance$cancelBlockBreakingWhileGuarding(boolean breaking, CallbackInfo ci) {
-        if (breaking && player != null && ((IGestaltPlayer) player).gestaltresonance$isGuarding()) {
-            ci.cancel();
+        if (breaking && player != null) {
+            IGestaltPlayer gp = (IGestaltPlayer) player;
+            if (gp.gestaltresonance$isGuarding() || gp.gestaltresonance$isIncapacitated()) {
+                ci.cancel();
+            }
         }
     }
 }

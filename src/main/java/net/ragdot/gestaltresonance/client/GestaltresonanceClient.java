@@ -12,6 +12,8 @@ import net.ragdot.gestaltresonance.client.model.AmenBreakIIIModel;
 import net.ragdot.gestaltresonance.client.model.AmenBreakModel;
 import net.ragdot.gestaltresonance.client.model.SpillwaysModel;
 import net.ragdot.gestaltresonance.entities.gestaltframework.GestaltBase;
+import net.ragdot.gestaltresonance.network.FuturamaRecordingPayload;
+import net.ragdot.gestaltresonance.network.FuturamaSyncPayload;
 import net.ragdot.gestaltresonance.network.ToggleGestaltSummonPayload;
 import net.ragdot.gestaltresonance.network.ToggleGuardModePayload;
 import net.ragdot.gestaltresonance.network.ToggleLedgeGrabPayload;
@@ -99,6 +101,9 @@ public class GestaltresonanceClient implements ClientModInitializer {
 
         // Detect right-click + crouch (hold-to-guard)
         ClientTickEvents.START_CLIENT_TICK.register(client -> {
+            if (client.world != null) {
+                FuturamaClientManager.tick();
+            }
             if (client.player == null || client.options == null) return;
             IGestaltPlayer gestaltPlayer = (IGestaltPlayer) client.player;
 
@@ -107,9 +112,12 @@ public class GestaltresonanceClient implements ClientModInitializer {
             boolean isSneaking = client.player.isSneaking();
 
             boolean isCurrentlyGuarding = gestaltPlayer.gestaltresonance$isGuarding();
+            boolean isIncapacitated = gestaltPlayer.gestaltresonance$isIncapacitated();
             boolean shouldBeGuarding;
 
-            if (isCurrentlyGuarding) {
+            if (isIncapacitated) {
+                shouldBeGuarding = false;
+            } else if (isCurrentlyGuarding) {
                 // If we are already guarding, stay in guard mode as long as right click is held
                 shouldBeGuarding = isRightClickPressed;
             } else {
@@ -134,36 +142,13 @@ public class GestaltresonanceClient implements ClientModInitializer {
             wasAttackPressedLastTick = isAttackPressed;
         });
 
-        // Detect right-click + crouch (hold-to-guard)
-        ClientTickEvents.START_CLIENT_TICK.register(client -> {
-            if (client.player == null || client.options == null) return;
-            IGestaltPlayer gestaltPlayer = (IGestaltPlayer) client.player;
-
-            boolean isRightClickPressed = client.options.useKey.isPressed();
-            boolean isSneaking = client.player.isSneaking();
-
-            boolean isCurrentlyGuarding = gestaltPlayer.gestaltresonance$isGuarding();
-            boolean shouldBeGuarding;
-
-            if (isCurrentlyGuarding) {
-                // If we are already guarding, stay in guard mode as long as right click is held
-                shouldBeGuarding = isRightClickPressed;
-            } else {
-                // To start guarding, we need both right click and sneak
-                shouldBeGuarding = isRightClickPressed && isSneaking;
-            }
-
-            if (shouldBeGuarding != isCurrentlyGuarding) {
-                gestaltPlayer.gestaltresonance$setGuarding(shouldBeGuarding);
-                ClientPlayNetworking.send(new ToggleGuardModePayload(shouldBeGuarding));
-                if (shouldBeGuarding) {
-                    client.player.setSprinting(false);
-                }
-            }
-        });
+        // Duplicated guard detection removed.
 
         // Each client tick, check if the key was pressed and send a packet to the server
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
+            if (client.player != null && ((IGestaltPlayer) client.player).gestaltresonance$isIncapacitated()) {
+                return;
+            }
 
             while (summonGestaltKey.wasPressed()) {
                 if (client.player != null && client.world != null) {
@@ -238,6 +223,14 @@ public class GestaltresonanceClient implements ClientModInitializer {
                 wasSpacePressedLastTick = isSpacePressed;
                 wasOnGroundLastTick = wasOnGround;
             }
+        });
+
+        ClientPlayNetworking.registerGlobalReceiver(FuturamaSyncPayload.ID, (payload, context) -> {
+            context.client().execute(() -> FuturamaClientManager.handleSync(payload));
+        });
+
+        ClientPlayNetworking.registerGlobalReceiver(FuturamaRecordingPayload.ID, (payload, context) -> {
+            context.client().execute(() -> FuturamaClientManager.handleRecording(payload));
         });
 
         // === Renderer / model setup ===
@@ -329,7 +322,26 @@ public class GestaltresonanceClient implements ClientModInitializer {
                 PopBudRenderer::new
         );
 
+        EntityRendererRegistry.register(
+                Gestaltresonance.POP_SPROUT,
+                PopSproutRenderer::new
+        );
+
         HudRenderCallback.EVENT.register(new StaminaHudRenderer());
+    }
+
+    // ===== Renderer for Pop Sprout =====
+    public static class PopSproutRenderer extends MobEntityRenderer<net.ragdot.gestaltresonance.entities.PopSprout, BipedEntityModel<net.ragdot.gestaltresonance.entities.PopSprout>> {
+        private static final Identifier TEXTURE = Identifier.of(Gestaltresonance.MOD_ID, "textures/entity/pop_sprout.png");
+
+        public PopSproutRenderer(EntityRendererFactory.Context ctx) {
+            super(ctx, new BipedEntityModel<>(ctx.getPart(EntityModelLayers.PLAYER)), 0.25f);
+        }
+
+        @Override
+        public Identifier getTexture(net.ragdot.gestaltresonance.entities.PopSprout entity) {
+            return TEXTURE;
+        }
     }
 
     // ===== Generic renderer for base Gestalten (Biped model) =====

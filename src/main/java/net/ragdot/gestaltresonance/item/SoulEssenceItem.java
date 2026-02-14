@@ -61,9 +61,10 @@ public class SoulEssenceItem extends Item {
             // Update assignment so future summons use Tier 2
             GestaltAssignments.assignGestalt(user, nextId);
 
-            // Initialize Tier 2 starting stats per design: level 5, 0 EXP
+            // Preserve level from Tier 1 (at least 5)
+            int previousLvl = current.getLvl();
             var gp = (net.ragdot.gestaltresonance.util.IGestaltPlayer) user;
-            gp.gestaltresonance$setGestaltLvl(nextId, 5);
+            gp.gestaltresonance$setGestaltLvl(nextId, previousLvl);
             gp.gestaltresonance$setGestaltExp(nextId, 0);
 
             // Despawn current Gestalt; player can re-summon and get Tier 2

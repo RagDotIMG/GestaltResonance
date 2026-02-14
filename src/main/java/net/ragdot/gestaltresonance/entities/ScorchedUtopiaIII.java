@@ -13,6 +13,11 @@ public class ScorchedUtopiaIII extends ScorchedUtopiaII {
     }
 
     @Override
+    public int getPowerCount() {
+        return 3;
+    }
+
+    @Override
     public Identifier getGestaltId() {
         return Identifier.of("gestaltresonance", "scorched_utopia_iii");
     }

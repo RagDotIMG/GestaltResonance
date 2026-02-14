@@ -13,6 +13,11 @@ public class SpillwaysII extends Spillways {
     }
 
     @Override
+    public int getPowerCount() {
+        return 2;
+    }
+
+    @Override
     public Identifier getGestaltId() {
         return Identifier.of("gestaltresonance", "spillways_ii");
     }

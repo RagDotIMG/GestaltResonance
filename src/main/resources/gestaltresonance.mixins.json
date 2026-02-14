@@ -20,10 +20,15 @@
     "WorldFuturamaBlockCaptureMixin",
     "WorldFuturamaExplosionCaptureMixin",
     "EntityFuturamaRemovalCaptureMixin",
-    "LivingEntityRottingDeathMixin"
+    "LivingEntityRottingDeathMixin",
+    "MobEntityBreakCoreMixin",
+    "access.PostEffectProcessorAccessor",
+    "access.PostEffectPassAccessor"
   ],
   "client": [
-    "MinecraftClientMixin"
+    "MinecraftClientMixin",
+    "GameRendererMixin",
+    "LivingEntityFuturamaGhostMixin"
   ],
   "injectors": {
     "defaultRequire": 1

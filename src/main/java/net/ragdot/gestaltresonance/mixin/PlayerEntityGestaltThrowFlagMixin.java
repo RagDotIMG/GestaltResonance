@@ -23,6 +23,10 @@ public class PlayerEntityGestaltThrowFlagMixin implements IGestaltPlayer {
     private static final net.minecraft.entity.data.TrackedData<Boolean> REDIRECTION_ACTIVE = net.minecraft.entity.data.DataTracker.registerData(PlayerEntity.class, net.minecraft.entity.data.TrackedDataHandlerRegistry.BOOLEAN);
     @Unique
     private static final net.minecraft.entity.data.TrackedData<Boolean> MUFFLED_MOVEMENT_ACTIVE = net.minecraft.entity.data.DataTracker.registerData(PlayerEntity.class, net.minecraft.entity.data.TrackedDataHandlerRegistry.BOOLEAN);
+    @Unique
+    private static final net.minecraft.entity.data.TrackedData<Boolean> INCAPACITATED = net.minecraft.entity.data.DataTracker.registerData(PlayerEntity.class, net.minecraft.entity.data.TrackedDataHandlerRegistry.BOOLEAN);
+    @Unique
+    private static final net.minecraft.entity.data.TrackedData<Integer> BREAK_CORE_TICS = net.minecraft.entity.data.DataTracker.registerData(PlayerEntity.class, net.minecraft.entity.data.TrackedDataHandlerRegistry.INTEGER);
 
     @org.spongepowered.asm.mixin.injection.Inject(method = "initDataTracker", at = @At("TAIL"))
     private void gestaltresonance$initGestaltDataTracker(net.minecraft.entity.data.DataTracker.Builder builder, org.spongepowered.asm.mixin.injection.callback.CallbackInfo ci) {
@@ -33,6 +37,8 @@ public class PlayerEntityGestaltThrowFlagMixin implements IGestaltPlayer {
         builder.add(LEDGE_GRAB_SIDE, -1);
         builder.add(REDIRECTION_ACTIVE, false);
         builder.add(MUFFLED_MOVEMENT_ACTIVE, false);
+        builder.add(INCAPACITATED, false);
+        builder.add(BREAK_CORE_TICS, 0);
     }
 
     // Removed obsolete ledge grab cooldown state
@@ -226,6 +232,26 @@ public class PlayerEntityGestaltThrowFlagMixin implements IGestaltPlayer {
     @Override
     public boolean gestaltresonance$isMuffledMovementActive() {
         return ((PlayerEntity)(Object)this).getDataTracker().get(MUFFLED_MOVEMENT_ACTIVE);
+    }
+
+    @Override
+    public void gestaltresonance$setIncapacitated(boolean value) {
+        ((PlayerEntity)(Object)this).getDataTracker().set(INCAPACITATED, value);
+    }
+
+    @Override
+    public boolean gestaltresonance$isIncapacitated() {
+        return ((PlayerEntity)(Object)this).getDataTracker().get(INCAPACITATED);
+    }
+
+    @Override
+    public void gestaltresonance$setBreakCoreTicks(int ticks) {
+        ((PlayerEntity)(Object)this).getDataTracker().set(BREAK_CORE_TICS, ticks);
+    }
+
+    @Override
+    public int gestaltresonance$getBreakCoreTicks() {
+        return ((PlayerEntity)(Object)this).getDataTracker().get(BREAK_CORE_TICS);
     }
 
     @Override

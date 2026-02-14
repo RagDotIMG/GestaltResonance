@@ -237,7 +237,7 @@ public class GestaltBase extends MobEntity {
 
     // ===== HUD power state API (for 3 powers: indices 0..2) =====
     /** Number of power slots to render on the HUD. Default: 3. */
-    public int getPowerCount() { return 3; }
+    public int getPowerCount() { return 0; }
 
     /**
      * If true for a given index, the HUD will render this slot as a simple on/off toggle
@@ -341,6 +341,9 @@ public class GestaltBase extends MobEntity {
 
         if (owner != null) {
             IGestaltPlayer gp = (IGestaltPlayer) owner;
+            if (gp.gestaltresonance$getBreakCoreTicks() > 0) {
+                return; // Stamina recovery is paused during Break Core
+            }
             if (gp.gestaltresonance$isGuarding()) {
                 guardingTicks++;
                 // Update guard reduction directly corresponding to stamina percentage

@@ -6,6 +6,9 @@ import net.minecraft.entity.EntityType;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.ragdot.gestaltresonance.network.FuturamaRecordingPayload;
+import net.ragdot.gestaltresonance.network.FuturamaSyncPayload;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec3d;
@@ -214,6 +217,7 @@ public final class FuturamaManager {
             s.ownerStartFrame = EntityFrame.capture(owner);
             s.snapshotInitialEntities(world);
             s.snapshotInitialPlayers(world);
+            ServerPlayNetworking.send(owner, new FuturamaRecordingPayload(true));
             return s;
         }
 
@@ -285,11 +289,21 @@ public final class FuturamaManager {
                 case RECORDING -> tickRecording(world);
                 case RESETTING -> {
                     applyReset(world);
+                    syncToClients(world);
+                    ServerPlayerEntity owner = world.getServer().getPlayerManager().getPlayer(ownerUuid);
+                    if (owner != null) {
+                        ServerPlayNetworking.send(owner, new FuturamaRecordingPayload(false));
+                    }
                     phase = Phase.REPLAYING;
                     tick = 0;
                 }
                 case REPLAYING -> tickReplay(world);
-                case DONE -> {}
+                case DONE -> {
+                    ServerPlayerEntity owner = world.getServer().getPlayerManager().getPlayer(ownerUuid);
+                    if (owner != null) {
+                        ((IGestaltPlayer) owner).gestaltresonance$setIncapacitated(false);
+                    }
+                }
             }
         }
 
@@ -333,7 +347,9 @@ public final class FuturamaManager {
 
         private void applyReset(ServerWorld world) {
             ServerPlayerEntity owner = world.getServer().getPlayerManager().getPlayer(ownerUuid);
-            if (owner == null) return;
+            if (owner != null) {
+                ((IGestaltPlayer) owner).gestaltresonance$setIncapacitated(false);
+            }
 
             uuidRemap.clear();
 
@@ -417,6 +433,29 @@ public final class FuturamaManager {
 
                     p.setFireTicks(0);
                     p.fallDistance = 0.0f;
+                }
+            }
+        }
+
+        private void syncToClients(ServerWorld world) {
+            Map<UUID, List<FuturamaSyncPayload.GhostFrame>> recordings = new HashMap<>();
+
+            for (int t = 0; t < RECORD_TICKS; t++) {
+                Map<UUID, EntityFrame> frameMap = entityFrames.get(t);
+                for (Map.Entry<UUID, EntityFrame> entry : frameMap.entrySet()) {
+                    UUID id = entry.getKey();
+                    EntityFrame f = entry.getValue();
+                    recordings.computeIfAbsent(id, k -> new ArrayList<>())
+                            .add(new FuturamaSyncPayload.GhostFrame(f.pos, f.yaw, f.pitch));
+                }
+            }
+
+            FuturamaSyncPayload payload = new FuturamaSyncPayload(RECORD_TICKS, recordings);
+
+            // Send to all players in the same world near the anchor
+            for (ServerPlayerEntity p : world.getPlayers()) {
+                if (isWithinRadius(p.getPos())) {
+                    ServerPlayNetworking.send(p, payload);
                 }
             }
         }
@@ -541,6 +580,7 @@ public final class FuturamaManager {
 
             // Activator is always protected from true death during recording.
             if (puid.equals(ownerUuid)) {
+                ((IGestaltPlayer) player).gestaltresonance$setIncapacitated(true);
                 return true;
             }
 

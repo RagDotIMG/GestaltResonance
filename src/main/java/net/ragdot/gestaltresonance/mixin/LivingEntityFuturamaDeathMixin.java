@@ -24,7 +24,8 @@ public abstract class LivingEntityFuturamaDeathMixin {
 
         if (FuturamaManager.tryPreventPlayerDeathDuringRecording(player)) {
             // Keep the player alive through the recording window.
-            player.setHealth(Math.max(1.0f, Math.min(player.getMaxHealth(), player.getHealth())));
+            // Requirement: drop to 1 heart (2.0 health)
+            player.setHealth(2.0f);
             player.setFireTicks(0);
             player.fallDistance = 0.0f;
 

@@ -50,7 +50,7 @@ public class AmenBreakAnimation {
 					new Keyframe(1.5F, AnimationHelper.createRotationalVector(-5.8117F, -42.5915F, 26.3295F), Transformation.Interpolations.CUBIC)
 			))
 			.addBoneAnimation("ArmRight", new Transformation(Transformation.Targets.ROTATE,
-					new Keyframe(0.0F, AnimationHelper.createRotationalVector(65.4965F, 27.2835F, -73.9477F), Transformation.Interpolations.CUBIC)
+					new Keyframe(0.0F, AnimationHelper.createRotationalVector(71.5779F, 21.3613F, -56.601F), Transformation.Interpolations.CUBIC)
 			))
 			.addBoneAnimation("ArmLeft", new Transformation(Transformation.Targets.ROTATE,
 					new Keyframe(0.0F, AnimationHelper.createRotationalVector(17.0266F, -47.9805F, -11.9133F), Transformation.Interpolations.CUBIC),
@@ -83,13 +83,13 @@ public class AmenBreakAnimation {
 					new Keyframe(0.0F, AnimationHelper.createRotationalVector(0.0F, 0.0F, 67.5F), Transformation.Interpolations.CUBIC)
 			))
 			.addBoneAnimation("Torso", new Transformation(Transformation.Targets.TRANSLATE,
-					new Keyframe(0.0F, AnimationHelper.createTranslationalVector(-9.3F, 11.8F, -3.0F), Transformation.Interpolations.CUBIC)
+					new Keyframe(0.0F, AnimationHelper.createTranslationalVector(-12.3F, 3.8F, -3.0F), Transformation.Interpolations.CUBIC)
 			))
 			.addBoneAnimation("Legs", new Transformation(Transformation.Targets.ROTATE,
 					new Keyframe(0.0F, AnimationHelper.createRotationalVector(0.0F, 0.0F, 60.0F), Transformation.Interpolations.CUBIC)
 			))
 			.addBoneAnimation("Legs", new Transformation(Transformation.Targets.TRANSLATE,
-					new Keyframe(0.0F, AnimationHelper.createTranslationalVector(-8.7F, 12.0F, -3.5F), Transformation.Interpolations.CUBIC)
+					new Keyframe(0.0F, AnimationHelper.createTranslationalVector(-11.7F, 4.0F, -3.5F), Transformation.Interpolations.CUBIC)
 			))
 			.addBoneAnimation("Ribbon", new Transformation(Transformation.Targets.ROTATE,
 					new Keyframe(0.0F, AnimationHelper.createRotationalVector(0.0F, 0.0F, 20.0F), Transformation.Interpolations.CUBIC),
@@ -140,13 +140,13 @@ public class AmenBreakAnimation {
 					new Keyframe(0.0F, AnimationHelper.createRotationalVector(0.0F, 52.5F, 0.0F), Transformation.Interpolations.CUBIC)
 			))
 			.addBoneAnimation("Torso", new Transformation(Transformation.Targets.TRANSLATE,
-					new Keyframe(0.0F, AnimationHelper.createTranslationalVector(-4.1F, 0.0F, 0.0F), Transformation.Interpolations.CUBIC)
+					new Keyframe(0.0F, AnimationHelper.createTranslationalVector(-4.1F, 4.0F, 0.0F), Transformation.Interpolations.CUBIC)
 			))
 			.addBoneAnimation("Legs", new Transformation(Transformation.Targets.ROTATE,
 					new Keyframe(0.0F, AnimationHelper.createRotationalVector(0.0F, 47.5F, 0.0F), Transformation.Interpolations.CUBIC)
 			))
 			.addBoneAnimation("Legs", new Transformation(Transformation.Targets.TRANSLATE,
-					new Keyframe(0.0F, AnimationHelper.createTranslationalVector(-4.2F, 0.0F, 0.0F), Transformation.Interpolations.CUBIC)
+					new Keyframe(0.0F, AnimationHelper.createTranslationalVector(-4.2F, 4.0F, 0.0F), Transformation.Interpolations.CUBIC)
 			))
 			.build();
 

@@ -16,7 +16,7 @@ import java.util.List;
  * This is intended to quickly boost a Gestalt to level 8 for upgrade testing.
  */
 public class DebugExpBoosterItem extends Item {
-    private static final int GRANT_AMOUNT = 2000; // Enough to reach higher levels
+    private static final int GRANT_AMOUNT = 600; // Enough to reach higher levels
 
     public DebugExpBoosterItem(Settings settings) {
         super(settings);
@@ -73,7 +73,7 @@ public class DebugExpBoosterItem extends Item {
                 stack.decrement(1);
             }
 
-            user.sendMessage(Text.literal("Granted 2000 Gestalt EXP."), true);
+            user.sendMessage(Text.literal("Granted 600 Gestalt EXP."), true);
             return TypedActionResult.success(stack, false);
         }
 

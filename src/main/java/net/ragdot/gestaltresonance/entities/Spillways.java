@@ -51,6 +51,11 @@ public class Spillways extends GestaltBase {
     }
 
     @Override
+    public int getPowerCount() {
+        return 1;
+    }
+
+    @Override
     public net.minecraft.util.Identifier getGestaltId() {
         return net.minecraft.util.Identifier.of("gestaltresonance", "spillways");
     }

@@ -137,8 +137,21 @@ public class Gestaltresonance implements ModInitializer {
                     .build("pop_bud")
     );
 
+    public static final EntityType<net.ragdot.gestaltresonance.entities.PopSprout> POP_SPROUT = Registry.register(
+            Registries.ENTITY_TYPE,
+            Identifier.of(MOD_ID, "pop_sprout"),
+            EntityType.Builder
+                    .create(net.ragdot.gestaltresonance.entities.PopSprout::new, SpawnGroup.MISC)
+                    .dimensions(0.5f, 0.5f)
+                    .makeFireImmune()
+                    .build("pop_sprout")
+    );
+
     @Override
     public void onInitialize() {
+        net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents.END_WORLD_TICK.register(world -> {
+            net.ragdot.gestaltresonance.util.BreakCoreManager.tick(world);
+        });
         ModStatusEffects.registerStatusEffects();
         ModBlocks.registerModBlocks();
         ModItemGroups.registerItemGroups();
@@ -153,6 +166,7 @@ public class Gestaltresonance implements ModInitializer {
         FabricDefaultAttributeRegistry.register(SPILLWAYS, Spillways.createAttributes());
         FabricDefaultAttributeRegistry.register(SPILLWAYS_II, Spillways.createAttributes());
         FabricDefaultAttributeRegistry.register(SPILLWAYS_III, Spillways.createAttributes());
+        FabricDefaultAttributeRegistry.register(POP_SPROUT, net.minecraft.entity.mob.MobEntity.createMobAttributes());
         // Pop Bud is a projectile (no attributes required)
 
         // Tier mappings (Tier I -> Tier II, Tier II -> Tier III)

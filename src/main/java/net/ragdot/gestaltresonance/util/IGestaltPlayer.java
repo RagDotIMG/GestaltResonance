@@ -38,4 +38,10 @@ public interface IGestaltPlayer {
     // Amen Break passive: muffled movement (suppress vibration/footstep events)
     void gestaltresonance$setMuffledMovementActive(boolean active);
     boolean gestaltresonance$isMuffledMovementActive();
+
+    void gestaltresonance$setIncapacitated(boolean value);
+    boolean gestaltresonance$isIncapacitated();
+
+    void gestaltresonance$setBreakCoreTicks(int ticks);
+    int gestaltresonance$getBreakCoreTicks();
 }

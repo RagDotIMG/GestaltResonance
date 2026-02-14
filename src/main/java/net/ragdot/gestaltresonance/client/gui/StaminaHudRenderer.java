@@ -68,8 +68,8 @@ public class StaminaHudRenderer implements HudRenderCallback {
         int gapAbove = 1; // 1px gap above the bars' border
         int gapBetween = 2; // 2px gap between rectangles
         int powersTopY = borderY - gapAbove - powerH; // directly above the top border with 1px gap
-        int powerCount = Math.max(0, activeGestalt.getPowerCount());
-        int maxSquares = Math.min(3, powerCount == 0 ? 3 : powerCount);
+        int powerCount = activeGestalt.getPowerCount();
+        int maxSquares = Math.min(3, Math.max(0, powerCount));
 
         for (int i = 0; i < maxSquares; i++) {
             int sx = x + i * (powerW + gapBetween);

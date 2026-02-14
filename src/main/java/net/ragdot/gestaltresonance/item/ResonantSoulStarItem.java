@@ -58,6 +58,12 @@ public class ResonantSoulStarItem extends Item {
             // Update assignment so future summons use Tier 3
             GestaltAssignments.assignGestalt(user, nextId);
 
+            // Preserve level from Tier 2
+            int previousLvl = current.getLvl();
+            var gp = (net.ragdot.gestaltresonance.util.IGestaltPlayer) user;
+            gp.gestaltresonance$setGestaltLvl(nextId, previousLvl);
+            gp.gestaltresonance$setGestaltExp(nextId, 0);
+
             // Despawn current Gestalt; player can re-summon and get Tier 3
             current.despawnWithCleanup();
 

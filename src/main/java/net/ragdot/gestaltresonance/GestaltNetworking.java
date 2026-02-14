@@ -10,6 +10,8 @@ import net.ragdot.gestaltresonance.entities.AmenBreak;
 import net.ragdot.gestaltresonance.entities.AmenBreakII;
 import net.ragdot.gestaltresonance.entities.gestaltframework.GestaltBase;
 import net.ragdot.gestaltresonance.entities.ScorchedUtopia;
+import net.ragdot.gestaltresonance.network.FuturamaRecordingPayload;
+import net.ragdot.gestaltresonance.network.FuturamaSyncPayload;
 import net.ragdot.gestaltresonance.network.GestaltThrowPayload;
 import net.ragdot.gestaltresonance.network.ToggleGestaltSummonPayload;
 import net.ragdot.gestaltresonance.network.ToggleGuardModePayload;
@@ -47,6 +49,15 @@ public class GestaltNetworking {
         PayloadTypeRegistry.playC2S().register(
                 DashGuardPunchPayload.ID,
                 DashGuardPunchPayload.CODEC
+        );
+
+        PayloadTypeRegistry.playS2C().register(
+                FuturamaSyncPayload.ID,
+                FuturamaSyncPayload.CODEC
+        );
+        PayloadTypeRegistry.playS2C().register(
+                FuturamaRecordingPayload.ID,
+                FuturamaRecordingPayload.CODEC
         );
 
         // 2) Register server handlers
@@ -121,6 +132,20 @@ public class GestaltNetworking {
             );
             for (AmenBreakII stand : amenStands) {
                 stand.futurama(player);
+            }
+        }
+
+        if (powerIndex == 2) {
+            ServerWorld world = player.getServerWorld();
+
+            // Amen Break (Tier III): Ability 3 — Break Core
+            List<net.ragdot.gestaltresonance.entities.AmenBreakIII> amenStands = world.getEntitiesByClass(
+                    net.ragdot.gestaltresonance.entities.AmenBreakIII.class,
+                    player.getBoundingBox().expand(256.0),
+                    stand -> player.getUuid().equals(stand.getOwnerUuid())
+            );
+            for (net.ragdot.gestaltresonance.entities.AmenBreakIII stand : amenStands) {
+                stand.breakCore(player);
             }
         }
     }
