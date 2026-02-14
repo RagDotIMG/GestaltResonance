@@ -147,6 +147,15 @@ public class Gestaltresonance implements ModInitializer {
                     .build("pop_sprout")
     );
 
+    public static final EntityType<net.ragdot.gestaltresonance.entities.TearsForFearsEntity> TEARS_FOR_FEARS = Registry.register(
+            Registries.ENTITY_TYPE,
+            Identifier.of(MOD_ID, "tears_for_fears"),
+            EntityType.Builder
+                    .<net.ragdot.gestaltresonance.entities.TearsForFearsEntity>create(net.ragdot.gestaltresonance.entities.TearsForFearsEntity::new, SpawnGroup.MISC)
+                    .dimensions(0.25f, 0.25f)
+                    .build("tears_for_fears")
+    );
+
     @Override
     public void onInitialize() {
         net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents.END_WORLD_TICK.register(world -> {

@@ -124,6 +124,16 @@ public class GestaltNetworking {
         if (powerIndex == 1) {
             ServerWorld world = player.getServerWorld();
 
+            // Spillways (Tier II+): Ability 2 — Tears for Fears
+            List<net.ragdot.gestaltresonance.entities.Spillways> spillwaysStands = world.getEntitiesByClass(
+                    net.ragdot.gestaltresonance.entities.Spillways.class,
+                    player.getBoundingBox().expand(256.0),
+                    stand -> player.getUuid().equals(stand.getOwnerUuid())
+            );
+            for (net.ragdot.gestaltresonance.entities.Spillways stand : spillwaysStands) {
+                stand.tearsForFears(player);
+            }
+
             // Amen Break (Tier II+): Ability 2 — Futurama
             List<AmenBreakII> amenStands = world.getEntitiesByClass(
                     AmenBreakII.class,

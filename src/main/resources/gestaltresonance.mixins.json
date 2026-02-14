@@ -22,6 +22,7 @@
     "EntityFuturamaRemovalCaptureMixin",
     "LivingEntityRottingDeathMixin",
     "MobEntityBreakCoreMixin",
+    "LivingEntityLandProtectionMixin",
     "access.PostEffectProcessorAccessor",
     "access.PostEffectPassAccessor"
   ],

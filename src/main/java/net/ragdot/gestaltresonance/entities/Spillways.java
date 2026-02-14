@@ -17,12 +17,17 @@ import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.fluid.Fluids;
 import net.minecraft.state.property.Properties;
+import net.ragdot.gestaltresonance.Gestaltresonance;
 import net.ragdot.gestaltresonance.entities.gestaltframework.GestaltBase;
+import net.ragdot.gestaltresonance.util.IGestaltPlayer;
 
 public class Spillways extends GestaltBase {
 
     // Cooldown for Power 1 (Lachryma)
     private int lachrymaCooldown = 0;
+
+    private int tearsForFearsCooldown = 0;
+    private int tearsForFearsMaxCooldown = 0;
 
     public Spillways(EntityType<? extends Spillways> type, World world) {
         super(type, world);
@@ -34,8 +39,11 @@ public class Spillways extends GestaltBase {
         if (!this.getWorld().isClient) {
             if (lachrymaCooldown > 0) {
                 lachrymaCooldown--;
-                // Sync HUD power cooldown progress (slot 0)
                 this.setPowerCooldown(0, lachrymaCooldown, 15);
+            }
+            if (tearsForFearsCooldown > 0) {
+                tearsForFearsCooldown--;
+                this.setPowerCooldown(1, tearsForFearsCooldown, tearsForFearsMaxCooldown);
             }
         }
     }
@@ -46,7 +54,8 @@ public class Spillways extends GestaltBase {
         if (owner != null && !this.getWorld().isClient) {
             IGestaltPlayer gp = (IGestaltPlayer) owner;
             this.lachrymaCooldown = gp.gestaltresonance$getGestaltPowerCooldownRemaining(getGestaltId(), 0);
-            this.loadPowerCooldownsFromOwner(owner);
+            this.tearsForFearsCooldown = gp.gestaltresonance$getGestaltPowerCooldownRemaining(getGestaltId(), 1);
+            this.tearsForFearsMaxCooldown = gp.gestaltresonance$getGestaltPowerCooldownMax(getGestaltId(), 1);
         }
     }
 
@@ -210,6 +219,39 @@ public class Spillways extends GestaltBase {
                 completeCreation(player, targetPos, createCost);
             }
         }
+    }
+
+    public void tearsForFears(ServerPlayerEntity player) {
+        if (player == null || player.getServerWorld() == null) return;
+        if (this.getLvl() < 2 && !this.getGestaltId().getPath().contains("_ii")) return; // Only for Tier 2+ or level >= 2? Wait, the issue says "once Spillways get's teir 2 and is usable for all it's tiers upwards from that"
+        // Actually, GestaltTiers handle entity swapping. So if this is Spillways (Tier 1), it shouldn't have it unless it's level 2? 
+        // No, "unlocks once Spillways get's teir 2". That means Spillways (Tier 1) NEVER has it. 
+        // SpillwaysII and SpillwaysIII will have it.
+        // But Spillways class is the base for SpillwaysII.
+        
+        if (this.getPowerCount() < 2) return; 
+
+        if (this.tearsForFearsCooldown > 0) return;
+        if (this.getStamina() < 6.0f) return;
+
+        this.setStamina(this.getStamina() - 6.0f);
+
+        TearsForFearsEntity bubble = new TearsForFearsEntity(Gestaltresonance.TEARS_FOR_FEARS, player.getWorld());
+        bubble.setOwner(player);
+        bubble.setSpillwayLevel(this.getLvl());
+        
+        // Spawn on player with slight right offset in about one block height
+        Vec3d right = player.getRotationVec(1.0f).rotateY(-1.5708f).multiply(0.5); // 90 degrees right
+        Vec3d spawnPos = player.getPos().add(right).add(0, 1.0, 0);
+        
+        bubble.refreshPositionAndAngles(spawnPos.x, spawnPos.y, spawnPos.z, player.getYaw(), player.getPitch());
+        player.getWorld().spawnEntity(bubble);
+
+        this.tearsForFearsMaxCooldown = 20; // 1 second cooldown? Or maybe more? Issue didn't specify.
+        this.tearsForFearsCooldown = this.tearsForFearsMaxCooldown;
+        this.setPowerCooldown(1, this.tearsForFearsCooldown, this.tearsForFearsMaxCooldown);
+        
+        player.getWorld().playSound(null, player.getX(), player.getY(), player.getZ(), net.minecraft.sound.SoundEvents.BLOCK_BUBBLE_COLUMN_UPWARDS_AMBIENT, net.minecraft.sound.SoundCategory.PLAYERS, 0.5f, 1.0f);
     }
 
     private void completeCreation(ServerPlayerEntity player, BlockPos pos, float cost) {

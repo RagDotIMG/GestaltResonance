@@ -239,6 +239,8 @@ public class GestaltresonanceClient implements ClientModInitializer {
         BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.POPSPROUT, RenderLayer.getCutout());
         BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.POP_PAD, RenderLayer.getCutout());
 
+        EntityRendererRegistry.register(Gestaltresonance.TEARS_FOR_FEARS, TearsForFearsRenderer::new);
+
         // 1) register model layer for ScorchedUtopia Blockbench model
         EntityModelLayerRegistry.registerModelLayer(
                 ModModelLayers.SCORCHED_UTOPIA,
@@ -524,6 +526,88 @@ public class GestaltresonanceClient implements ClientModInitializer {
         @Override
         public Identifier getTexture(Spillways entity) {
             return resolveTexture(entity);
+        }
+    }
+
+    // ===== Renderer for Tears for Fears bubble =====
+    public static class TearsForFearsRenderer extends net.minecraft.client.render.entity.EntityRenderer<net.ragdot.gestaltresonance.entities.TearsForFearsEntity> {
+        private static final Identifier TEXTURE = Identifier.of(
+                Gestaltresonance.MOD_ID,
+                "textures/entity/tears_for_fears.png"
+        );
+        private static final Identifier EFFECT_TEXTURE = Identifier.of(
+                Gestaltresonance.MOD_ID,
+                "textures/entity/tears_for_fears_effect.png"
+        );
+
+        public TearsForFearsRenderer(EntityRendererFactory.Context ctx) {
+            super(ctx);
+        }
+
+        @Override
+        public void render(net.ragdot.gestaltresonance.entities.TearsForFearsEntity entity, float entityYaw, float tickDelta, MatrixStack matrices,
+                           VertexConsumerProvider vertexConsumers, int light) {
+            matrices.push();
+
+            float age = (float)entity.age + tickDelta;
+            
+            // Billboard effect: rotate to face camera
+            matrices.multiply(this.dispatcher.getRotation());
+            matrices.multiply(net.minecraft.util.math.RotationAxis.POSITIVE_Y.rotationDegrees(180.0f));
+
+            float scale = 0.5f;
+            matrices.scale(scale, scale, scale);
+
+            MatrixStack.Entry entry = matrices.peek();
+
+            // Opacity: 50% to 80% every 10 ticks
+            // 10 ticks = full cycle (5 ticks up, 5 ticks down) -> frequency = 2*PI / 10
+            float pulseFreq = (float)Math.PI * 0.2f;
+            float pulse = MathHelper.sin(age * pulseFreq);
+            
+            float alpha = 0.65f + pulse * 0.15f; // Oscillates between 0.5 and 0.8
+            
+            // Saturation/Brightness boost: let's say 1.0 to 1.4
+            float boost = 1.0f + (pulse + 1.0f) * 0.2f; // pulse is -1 to 1, so (pulse+1) is 0 to 2. boost is 1.0 to 1.4
+
+            // Render base texture
+            net.minecraft.client.render.VertexConsumer vc1 = vertexConsumers.getBuffer(RenderLayer.getEntityTranslucentEmissive(TEXTURE));
+            drawDistortedQuad(entry, vc1, age, 1.0f, 1.0f, alpha, boost);
+            
+            // Render effect texture on top with desynced distortion
+            net.minecraft.client.render.VertexConsumer vc2 = vertexConsumers.getBuffer(RenderLayer.getEntityTranslucentEmissive(EFFECT_TEXTURE));
+            drawDistortedQuad(entry, vc2, age + 50.0f, 1.2f, 0.8f, alpha, boost);
+
+            matrices.pop();
+            // super.render(entity, entityYaw, tickDelta, matrices, vertexConsumers, light); // Intentionally skip to avoid shadow casting if possible
+        }
+
+        private void drawDistortedQuad(MatrixStack.Entry entry, net.minecraft.client.render.VertexConsumer vc, float age, float speedMult, float ampMult, float alpha, float boost) {
+            float min = -0.5f;
+            float max = 0.5f;
+
+            // Toned down to 10% of original (0.1 -> 0.01)
+            float uDist = MathHelper.sin(age * 0.4f * speedMult) * 0.01f * ampMult;
+            float vDist = MathHelper.cos(age * 0.5f * speedMult) * 0.01f * ampMult;
+
+            float u0 = 0.15f + uDist;
+            float u1 = 0.85f + uDist;
+            float v0 = 0.15f + vDist;
+            float v1 = 0.85f + vDist;
+
+            int a = (int)(alpha * 255.0f);
+            int rgb = MathHelper.clamp((int)(255.0f * boost), 0, 255);
+            int fullBright = 15728880;
+
+            vc.vertex(entry, min, min, 0).color(rgb, rgb, rgb, a).texture(u0, v1).overlay(net.minecraft.client.render.OverlayTexture.DEFAULT_UV).light(fullBright).normal(entry, 0, 0, 1);
+            vc.vertex(entry, max, min, 0).color(rgb, rgb, rgb, a).texture(u1, v1).overlay(net.minecraft.client.render.OverlayTexture.DEFAULT_UV).light(fullBright).normal(entry, 0, 0, 1);
+            vc.vertex(entry, max, max, 0).color(rgb, rgb, rgb, a).texture(u1, v0).overlay(net.minecraft.client.render.OverlayTexture.DEFAULT_UV).light(fullBright).normal(entry, 0, 0, 1);
+            vc.vertex(entry, min, max, 0).color(rgb, rgb, rgb, a).texture(u0, v0).overlay(net.minecraft.client.render.OverlayTexture.DEFAULT_UV).light(fullBright).normal(entry, 0, 0, 1);
+        }
+
+        @Override
+        public Identifier getTexture(net.ragdot.gestaltresonance.entities.TearsForFearsEntity entity) {
+            return TEXTURE;
         }
     }
 
