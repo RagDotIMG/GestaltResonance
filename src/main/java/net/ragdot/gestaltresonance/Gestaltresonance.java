@@ -30,6 +30,7 @@ import net.ragdot.gestaltresonance.item.ModItemGroups;
 import net.ragdot.gestaltresonance.block.ModBlocks;
 import net.ragdot.gestaltresonance.item.ModItems;
 import net.ragdot.gestaltresonance.projectile.PopBud;
+import net.ragdot.gestaltresonance.sound.ModSounds;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -168,6 +169,7 @@ public class Gestaltresonance implements ModInitializer {
 
     @Override
     public void onInitialize() {
+        ModSounds.registerSounds();
         net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents.END_WORLD_TICK.register(world -> {
             net.ragdot.gestaltresonance.util.BreakCoreManager.tick(world);
         });

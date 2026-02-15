@@ -28,6 +28,7 @@ public class GestaltBase extends MobEntity {
     protected static final TrackedData<Boolean> IS_ATTACKING = DataTracker.registerData(GestaltBase.class, TrackedDataHandlerRegistry.BOOLEAN);
     protected static final TrackedData<Boolean> IS_WINDING_UP = DataTracker.registerData(GestaltBase.class, TrackedDataHandlerRegistry.BOOLEAN);
     protected static final TrackedData<Boolean> IS_PUNCHING = DataTracker.registerData(GestaltBase.class, TrackedDataHandlerRegistry.BOOLEAN);
+    protected static final TrackedData<Boolean> IS_INTRO = DataTracker.registerData(GestaltBase.class, TrackedDataHandlerRegistry.BOOLEAN);
     protected static final TrackedData<Float> STAMINA = DataTracker.registerData(GestaltBase.class, TrackedDataHandlerRegistry.FLOAT);
     protected static final TrackedData<Float> GUARD_REDUCTION = DataTracker.registerData(GestaltBase.class, TrackedDataHandlerRegistry.FLOAT);
     protected static final TrackedData<Integer> EXP = DataTracker.registerData(GestaltBase.class, TrackedDataHandlerRegistry.INTEGER);
@@ -51,6 +52,7 @@ public class GestaltBase extends MobEntity {
     protected int attackCooldownTicks = 0; // simple per-stand cooldown
     protected int punchingTicks = 0;
     protected int windUpTicks = 0;
+    protected int introTicks = 0;
     protected int guardingTicks = 0;
     protected int staminaRegenDelay = 0;
 
@@ -82,6 +84,7 @@ public class GestaltBase extends MobEntity {
         builder.add(IS_ATTACKING, false);
         builder.add(IS_WINDING_UP, false);
         builder.add(IS_PUNCHING, false);
+        builder.add(IS_INTRO, false);
         builder.add(STAMINA, 26.0f);
         builder.add(GUARD_REDUCTION, 0.0f);
         builder.add(EXP, 0);
@@ -520,6 +523,12 @@ public class GestaltBase extends MobEntity {
             if (this.dataTracker.get(IS_PUNCHING) != (punchingTicks > 0)) {
                 this.dataTracker.set(IS_PUNCHING, punchingTicks > 0);
             }
+            if (introTicks > 0) {
+                introTicks--;
+            }
+            if (this.dataTracker.get(IS_INTRO) != (introTicks > 0)) {
+                this.dataTracker.set(IS_INTRO, introTicks > 0);
+            }
         } else {
             // Client-side: sync target and attack state from data tracker
             int targetId = this.dataTracker.get(TARGET_ID);
@@ -749,6 +758,7 @@ public class GestaltBase extends MobEntity {
             this.windUpTicks = 0;
             // Stick in place for full animation visibility
             this.punchingTicks = Math.max(this.punchingTicks, getGuardDashStickTicks());
+            this.getWorld().playSound(null, this.getX(), this.getY(), this.getZ(), net.ragdot.gestaltresonance.sound.ModSounds.PUNCH, net.minecraft.sound.SoundCategory.NEUTRAL, 1.0f, 1.0f);
 
             // Begin post-dash stick phase at the exact hit position
             this.postDashStickPos = this.getPos();
@@ -1039,6 +1049,7 @@ public class GestaltBase extends MobEntity {
             attackCooldownTicks = getAttackCooldownTicks();
             punchingTicks = 10;
             this.dataTracker.set(IS_PUNCHING, true);
+            this.getWorld().playSound(null, this.getX(), this.getY(), this.getZ(), net.ragdot.gestaltresonance.sound.ModSounds.PUNCH, net.minecraft.sound.SoundCategory.NEUTRAL, 1.0f, 1.0f);
         }
     }
 
@@ -1115,6 +1126,13 @@ public class GestaltBase extends MobEntity {
         this.setVelocity(Vec3d.ZERO);
     }
 
+    public void setIntroTicks(int ticks) {
+        this.introTicks = ticks;
+        if (!this.getWorld().isClient) {
+            this.dataTracker.set(IS_INTRO, ticks > 0);
+        }
+    }
+
     // ===== Following behavior (can be overridden per stand) =====
     protected void updatePositionToOwner() {
         if (owner == null) return;
@@ -1129,6 +1147,16 @@ public class GestaltBase extends MobEntity {
         boolean isGuarding = gp.gestaltresonance$isGuarding();
         boolean isLedgeGrabbing = gp.gestaltresonance$isLedgeGrabbing();
         boolean isThrowing = gp.gestaltresonance$isGestaltThrowActive();
+        boolean isIntro = this.dataTracker.get(IS_INTRO);
+
+        if (isIntro) {
+            // Intro mode: Remain at current spawn position (do not update position)
+            // Just sync yaw with owner
+            this.setYaw(yaw);
+            this.setHeadYaw(yaw);
+            this.bodyYaw = yaw;
+            return;
+        }
 
         if (isThrowing) {
             // Throw mode: Directly behind the player

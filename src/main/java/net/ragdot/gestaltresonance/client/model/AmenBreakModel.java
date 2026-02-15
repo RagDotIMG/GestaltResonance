@@ -133,6 +133,7 @@ public class AmenBreakModel extends SinglePartEntityModel<AmenBreak> {
   this.updateAnimation(entity.animationHelper.guardAnimationState, AmenBreakAnimation.Guard, ageInTicks, 1.0f);
   this.updateAnimation(entity.animationHelper.throwAnimationState, AmenBreakAnimation.Throw, ageInTicks, 1.2f);
   this.updateAnimation(entity.animationHelper.grabAnimationState, AmenBreakAnimation.grab, ageInTicks, 1.0f);
+  this.updateAnimation(entity.animationHelper.introAnimationState, AmenBreakAnimation.Intro, ageInTicks, 1.0f);
   this.updateAnimation(entity.animationHelper.windUpAnimationState, AmenBreakAnimation.WindUp, ageInTicks, 1.0f);
   this.updateAnimation(entity.animationHelper.punchAnimationState, AmenBreakAnimation.Punch, ageInTicks, 2.0f);
 	}

@@ -60,10 +60,24 @@ public class AmenBreakIII extends AmenBreakII {
 
     public void breakCore(ServerPlayerEntity player) {
         if (player == null || player.getServerWorld() == null) return;
-        if (this.breakCoreCooldown > 0) return;
 
         IGestaltPlayer gp = (IGestaltPlayer) player;
-        
+
+        // Toggle off if already active
+        if (gp.gestaltresonance$getBreakCoreTicks() > 0) {
+            gp.gestaltresonance$setBreakCoreTicks(0);
+            player.removeStatusEffect(net.minecraft.entity.effect.StatusEffects.INVISIBILITY);
+
+            // Stop the sound on the client
+            player.networkHandler.sendPacket(new net.minecraft.network.packet.s2c.play.StopSoundS2CPacket(
+                    net.ragdot.gestaltresonance.sound.ModSounds.BREAK_CORE.getId(),
+                    net.minecraft.sound.SoundCategory.PLAYERS
+            ));
+            return;
+        }
+
+        if (this.breakCoreCooldown > 0) return;
+
         // Trigger Break Core: 10 seconds = 200 ticks
         gp.gestaltresonance$setBreakCoreTicks(200);
 
@@ -76,6 +90,11 @@ public class AmenBreakIII extends AmenBreakII {
                 false,
                 true
         ));
+
+        // Play the sound
+        player.getWorld().playSoundFromEntity(null, player,
+                net.ragdot.gestaltresonance.sound.ModSounds.BREAK_CORE,
+                net.minecraft.sound.SoundCategory.PLAYERS, 1.0f, 1.0f);
 
         this.breakCoreCooldown = BREAK_CORE_MAX_COOLDOWN;
         this.setPowerCooldown(2, this.breakCoreCooldown, BREAK_CORE_MAX_COOLDOWN);

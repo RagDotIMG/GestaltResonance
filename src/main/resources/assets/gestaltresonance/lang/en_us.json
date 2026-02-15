@@ -29,5 +29,8 @@
   "key.gestaltresonance.power3": "Gestalt Power 3",
   "ability.gestaltresonance.amen_break.jungle_bomber": "Jungle Bomber",
   "block.gestaltresonance.popsprout": "Pop Sprout",
-  "block.gestaltresonance.pod_pad": "Pod Pad"
+  "block.gestaltresonance.pod_pad": "Pod Pad",
+  "subtitles.gestaltresonance.futurama_recording": "Futurama Recording Plays",
+  "subtitles.gestaltresonance.break_core": "Break Core Intensifies",
+  "subtitles.gestaltresonance.punch": "Gestalt Punches"
 }

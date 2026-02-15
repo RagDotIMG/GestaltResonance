@@ -386,17 +386,17 @@ public class GestaltNetworking {
         float yaw = player.getYaw();
         double rad = Math.toRadians(yaw);
 
-        double backOffset = 1.9;
-        double sideOffset = 0.5;
+        double frontOffset = 0.9;
+        double leftOffset = -0.6;
         double heightOffset = 0.4;
 
-        double backX = -Math.sin(rad);
-        double backZ =  Math.cos(rad);
-        double rightX =  Math.cos(rad);
-        double rightZ =  Math.sin(rad);
+        double frontX = -Math.sin(rad);
+        double frontZ =  Math.cos(rad);
+        double leftX = -Math.cos(rad);
+        double leftZ = -Math.sin(rad);
 
-        double spawnX = player.getX() + backOffset * backX + sideOffset * rightX;
-        double spawnZ = player.getZ() + backOffset * backZ + sideOffset * rightZ;
+        double spawnX = player.getX() + frontOffset * frontX + leftOffset * leftX;
+        double spawnZ = player.getZ() + frontOffset * frontZ + leftOffset * leftZ;
         double spawnY = player.getY() + heightOffset;
 
         AmenBreak stand = new AmenBreak(Gestaltresonance.AMEN_BREAK, world);
@@ -410,6 +410,7 @@ public class GestaltNetworking {
         stand.setLvl(gp.gestaltresonance$getGestaltLvl(id));
 
         stand.refreshPositionAndAngles(spawnX, spawnY, spawnZ, yaw, 0.0f);
+        stand.setIntroTicks(10);
         world.spawnEntity(stand);
     }
 
@@ -435,17 +436,17 @@ public class GestaltNetworking {
         float yaw = player.getYaw();
         double rad = Math.toRadians(yaw);
 
-        double backOffset = 1.9;
-        double sideOffset = 0.5;
+        double frontOffset = 0.9;
+        double leftOffset = -0.6;
         double heightOffset = 0.4;
 
-        double backX = -Math.sin(rad);
-        double backZ =  Math.cos(rad);
-        double rightX =  Math.cos(rad);
-        double rightZ =  Math.sin(rad);
+        double frontX = -Math.sin(rad);
+        double frontZ =  Math.cos(rad);
+        double leftX = -Math.cos(rad);
+        double leftZ = -Math.sin(rad);
 
-        double spawnX = player.getX() + backOffset * backX + sideOffset * rightX;
-        double spawnZ = player.getZ() + backOffset * backZ + sideOffset * rightZ;
+        double spawnX = player.getX() + frontOffset * frontX + leftOffset * leftX;
+        double spawnZ = player.getZ() + frontOffset * frontZ + leftOffset * leftZ;
         double spawnY = player.getY() + heightOffset;
 
         net.ragdot.gestaltresonance.entities.AmenBreakII stand = new net.ragdot.gestaltresonance.entities.AmenBreakII(Gestaltresonance.AMEN_BREAK_II, world);
@@ -458,6 +459,7 @@ public class GestaltNetworking {
         stand.setLvl(gp.gestaltresonance$getGestaltLvl(id));
 
         stand.refreshPositionAndAngles(spawnX, spawnY, spawnZ, yaw, 0.0f);
+        stand.setIntroTicks(10);
         world.spawnEntity(stand);
     }
 
@@ -483,17 +485,17 @@ public class GestaltNetworking {
         float yaw = player.getYaw();
         double rad = Math.toRadians(yaw);
 
-        double backOffset = 1.9;
-        double sideOffset = 0.5;
+        double frontOffset = 0.9;
+        double leftOffset = -0.6;
         double heightOffset = 0.4;
 
-        double backX = -Math.sin(rad);
-        double backZ =  Math.cos(rad);
-        double rightX =  Math.cos(rad);
-        double rightZ =  Math.sin(rad);
+        double frontX = -Math.sin(rad);
+        double frontZ =  Math.cos(rad);
+        double leftX = -Math.cos(rad);
+        double leftZ = -Math.sin(rad);
 
-        double spawnX = player.getX() + backOffset * backX + sideOffset * rightX;
-        double spawnZ = player.getZ() + backOffset * backZ + sideOffset * rightZ;
+        double spawnX = player.getX() + frontOffset * frontX + leftOffset * leftX;
+        double spawnZ = player.getZ() + frontOffset * frontZ + leftOffset * leftZ;
         double spawnY = player.getY() + heightOffset;
 
         net.ragdot.gestaltresonance.entities.AmenBreakIII stand = new net.ragdot.gestaltresonance.entities.AmenBreakIII(Gestaltresonance.AMEN_BREAK_III, world);
@@ -506,6 +508,7 @@ public class GestaltNetworking {
         stand.setLvl(gp.gestaltresonance$getGestaltLvl(id));
 
         stand.refreshPositionAndAngles(spawnX, spawnY, spawnZ, yaw, 0.0f);
+        stand.setIntroTicks(10);
         world.spawnEntity(stand);
     }
 
@@ -531,17 +534,17 @@ public class GestaltNetworking {
         float yaw = player.getYaw();
         double rad = Math.toRadians(yaw);
 
-        double backOffset = 1.9;
-        double sideOffset = 0.5;
+        double frontOffset = 0.9;
+        double leftOffset = -0.6;
         double heightOffset = 0.4;
 
-        double backX = -Math.sin(rad);
-        double backZ =  Math.cos(rad);
-        double rightX =  Math.cos(rad);
-        double rightZ =  Math.sin(rad);
+        double frontX = -Math.sin(rad);
+        double frontZ =  Math.cos(rad);
+        double leftX = -Math.cos(rad);
+        double leftZ = -Math.sin(rad);
 
-        double spawnX = player.getX() + backOffset * backX + sideOffset * rightX;
-        double spawnZ = player.getZ() + backOffset * backZ + sideOffset * rightZ;
+        double spawnX = player.getX() + frontOffset * frontX + leftOffset * leftX;
+        double spawnZ = player.getZ() + frontOffset * frontZ + leftOffset * leftZ;
         double spawnY = player.getY() + heightOffset;
 
         ScorchedUtopia stand = new ScorchedUtopia(Gestaltresonance.SCORCHED_UTOPIA, world);
@@ -555,6 +558,7 @@ public class GestaltNetworking {
         stand.setLvl(gp.gestaltresonance$getGestaltLvl(id));
 
         stand.refreshPositionAndAngles(spawnX, spawnY, spawnZ, yaw, 0.0f);
+        stand.setIntroTicks(10);
         world.spawnEntity(stand);
     }
 
@@ -580,17 +584,17 @@ public class GestaltNetworking {
         float yaw = player.getYaw();
         double rad = Math.toRadians(yaw);
 
-        double backOffset = 1.9;
-        double sideOffset = 0.5;
+        double frontOffset = 0.9;
+        double leftOffset = -0.6;
         double heightOffset = 0.4;
 
-        double backX = -Math.sin(rad);
-        double backZ =  Math.cos(rad);
-        double rightX =  Math.cos(rad);
-        double rightZ =  Math.sin(rad);
+        double frontX = -Math.sin(rad);
+        double frontZ =  Math.cos(rad);
+        double leftX = -Math.cos(rad);
+        double leftZ = -Math.sin(rad);
 
-        double spawnX = player.getX() + backOffset * backX + sideOffset * rightX;
-        double spawnZ = player.getZ() + backOffset * backZ + sideOffset * rightZ;
+        double spawnX = player.getX() + frontOffset * frontX + leftOffset * leftX;
+        double spawnZ = player.getZ() + frontOffset * frontZ + leftOffset * leftZ;
         double spawnY = player.getY() + heightOffset;
 
         net.ragdot.gestaltresonance.entities.ScorchedUtopiaII stand = new net.ragdot.gestaltresonance.entities.ScorchedUtopiaII(Gestaltresonance.SCORCHED_UTOPIA_II, world);
@@ -603,6 +607,7 @@ public class GestaltNetworking {
         stand.setLvl(gp.gestaltresonance$getGestaltLvl(id));
 
         stand.refreshPositionAndAngles(spawnX, spawnY, spawnZ, yaw, 0.0f);
+        stand.setIntroTicks(10);
         world.spawnEntity(stand);
     }
 
@@ -628,17 +633,17 @@ public class GestaltNetworking {
         float yaw = player.getYaw();
         double rad = Math.toRadians(yaw);
 
-        double backOffset = 1.9;
-        double sideOffset = 0.5;
+        double frontOffset = 0.9;
+        double leftOffset = -0.6;
         double heightOffset = 0.4;
 
-        double backX = -Math.sin(rad);
-        double backZ =  Math.cos(rad);
-        double rightX =  Math.cos(rad);
-        double rightZ =  Math.sin(rad);
+        double frontX = -Math.sin(rad);
+        double frontZ =  Math.cos(rad);
+        double leftX = -Math.cos(rad);
+        double leftZ = -Math.sin(rad);
 
-        double spawnX = player.getX() + backOffset * backX + sideOffset * rightX;
-        double spawnZ = player.getZ() + backOffset * backZ + sideOffset * rightZ;
+        double spawnX = player.getX() + frontOffset * frontX + leftOffset * leftX;
+        double spawnZ = player.getZ() + frontOffset * frontZ + leftOffset * leftZ;
         double spawnY = player.getY() + heightOffset;
 
         net.ragdot.gestaltresonance.entities.ScorchedUtopiaIII stand = new net.ragdot.gestaltresonance.entities.ScorchedUtopiaIII(Gestaltresonance.SCORCHED_UTOPIA_III, world);
@@ -651,6 +656,7 @@ public class GestaltNetworking {
         stand.setLvl(gp.gestaltresonance$getGestaltLvl(id));
 
         stand.refreshPositionAndAngles(spawnX, spawnY, spawnZ, yaw, 0.0f);
+        stand.setIntroTicks(10);
         world.spawnEntity(stand);
     }
 
@@ -676,17 +682,17 @@ public class GestaltNetworking {
         float yaw = player.getYaw();
         double rad = Math.toRadians(yaw);
 
-        double backOffset = 1.9;
-        double sideOffset = 0.5;
+        double frontOffset = 0.9;
+        double leftOffset = -0.6;
         double heightOffset = 0.4;
 
-        double backX = -Math.sin(rad);
-        double backZ =  Math.cos(rad);
-        double rightX =  Math.cos(rad);
-        double rightZ =  Math.sin(rad);
+        double frontX = -Math.sin(rad);
+        double frontZ =  Math.cos(rad);
+        double leftX = -Math.cos(rad);
+        double leftZ = -Math.sin(rad);
 
-        double spawnX = player.getX() + backOffset * backX + sideOffset * rightX;
-        double spawnZ = player.getZ() + backOffset * backZ + sideOffset * rightZ;
+        double spawnX = player.getX() + frontOffset * frontX + leftOffset * leftX;
+        double spawnZ = player.getZ() + frontOffset * frontZ + leftOffset * leftZ;
         double spawnY = player.getY() + heightOffset;
 
         net.ragdot.gestaltresonance.entities.Spillways stand = new net.ragdot.gestaltresonance.entities.Spillways(Gestaltresonance.SPILLWAYS, world);
@@ -699,6 +705,7 @@ public class GestaltNetworking {
         stand.setLvl(gp.gestaltresonance$getGestaltLvl(id));
 
         stand.refreshPositionAndAngles(spawnX, spawnY, spawnZ, yaw, 0.0f);
+        stand.setIntroTicks(10);
         world.spawnEntity(stand);
     }
 
@@ -724,17 +731,17 @@ public class GestaltNetworking {
         float yaw = player.getYaw();
         double rad = Math.toRadians(yaw);
 
-        double backOffset = 1.9;
-        double sideOffset = 0.5;
+        double frontOffset = 0.9;
+        double leftOffset = -0.6;
         double heightOffset = 0.4;
 
-        double backX = -Math.sin(rad);
-        double backZ =  Math.cos(rad);
-        double rightX =  Math.cos(rad);
-        double rightZ =  Math.sin(rad);
+        double frontX = -Math.sin(rad);
+        double frontZ =  Math.cos(rad);
+        double leftX = -Math.cos(rad);
+        double leftZ = -Math.sin(rad);
 
-        double spawnX = player.getX() + backOffset * backX + sideOffset * rightX;
-        double spawnZ = player.getZ() + backOffset * backZ + sideOffset * rightZ;
+        double spawnX = player.getX() + frontOffset * frontX + leftOffset * leftX;
+        double spawnZ = player.getZ() + frontOffset * frontZ + leftOffset * leftZ;
         double spawnY = player.getY() + heightOffset;
 
         net.ragdot.gestaltresonance.entities.SpillwaysII stand = new net.ragdot.gestaltresonance.entities.SpillwaysII(Gestaltresonance.SPILLWAYS_II, world);
@@ -747,6 +754,7 @@ public class GestaltNetworking {
         stand.setLvl(gp.gestaltresonance$getGestaltLvl(id));
 
         stand.refreshPositionAndAngles(spawnX, spawnY, spawnZ, yaw, 0.0f);
+        stand.setIntroTicks(10);
         world.spawnEntity(stand);
     }
 
@@ -772,17 +780,17 @@ public class GestaltNetworking {
         float yaw = player.getYaw();
         double rad = Math.toRadians(yaw);
 
-        double backOffset = 1.9;
-        double sideOffset = 0.5;
+        double frontOffset = 0.9;
+        double leftOffset = -0.6;
         double heightOffset = 0.4;
 
-        double backX = -Math.sin(rad);
-        double backZ =  Math.cos(rad);
-        double rightX =  Math.cos(rad);
-        double rightZ =  Math.sin(rad);
+        double frontX = -Math.sin(rad);
+        double frontZ =  Math.cos(rad);
+        double leftX = -Math.cos(rad);
+        double leftZ = -Math.sin(rad);
 
-        double spawnX = player.getX() + backOffset * backX + sideOffset * rightX;
-        double spawnZ = player.getZ() + backOffset * backZ + sideOffset * rightZ;
+        double spawnX = player.getX() + frontOffset * frontX + leftOffset * leftX;
+        double spawnZ = player.getZ() + frontOffset * frontZ + leftOffset * leftZ;
         double spawnY = player.getY() + heightOffset;
 
         net.ragdot.gestaltresonance.entities.SpillwaysIII stand = new net.ragdot.gestaltresonance.entities.SpillwaysIII(Gestaltresonance.SPILLWAYS_III, world);
@@ -795,6 +803,7 @@ public class GestaltNetworking {
         stand.setLvl(gp.gestaltresonance$getGestaltLvl(id));
 
         stand.refreshPositionAndAngles(spawnX, spawnY, spawnZ, yaw, 0.0f);
+        stand.setIntroTicks(10);
         world.spawnEntity(stand);
     }
 }

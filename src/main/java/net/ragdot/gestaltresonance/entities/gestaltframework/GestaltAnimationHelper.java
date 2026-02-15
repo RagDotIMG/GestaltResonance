@@ -9,6 +9,7 @@ public class GestaltAnimationHelper {
     public final AnimationState guardAnimationState = new AnimationState();
     public final AnimationState throwAnimationState = new AnimationState();
     public final AnimationState grabAnimationState = new AnimationState();
+    public final AnimationState introAnimationState = new AnimationState();
     public final AnimationState windUpAnimationState = new AnimationState();
     public final AnimationState punchAnimationState = new AnimationState();
     private final GestaltBase gestalt;
@@ -21,6 +22,7 @@ public class GestaltAnimationHelper {
         this.guardAnimationState.stop();
         this.throwAnimationState.stop();
         this.grabAnimationState.stop();
+        this.introAnimationState.stop();
         this.windUpAnimationState.stop();
         this.punchAnimationState.stop();
     }
@@ -38,8 +40,9 @@ public class GestaltAnimationHelper {
                 this.guardAnimationState.stop();
             }
 
-            // Grab animation
-            if (gp != null && gp.gestaltresonance$isLedgeGrabbing()) {
+            // Grab animation (Ledge Grab)
+            boolean isGrabbing = gp != null && gp.gestaltresonance$isLedgeGrabbing();
+            if (isGrabbing) {
                 this.grabAnimationState.startIfNotRunning(gestalt.age);
                 anyOtherAnimationRunning = true;
             } else {
@@ -47,11 +50,19 @@ public class GestaltAnimationHelper {
             }
 
             // Throw animation
-            if (gp != null && gp.gestaltresonance$isGestaltThrowActive()) {
+            if (gp != null && gp.gestaltresonance$isGestaltThrowActive() && !isGrabbing) {
                 this.throwAnimationState.startIfNotRunning(gestalt.age);
                 anyOtherAnimationRunning = true;
             } else {
                 this.throwAnimationState.stop();
+            }
+
+            // Intro animation
+            if (gestalt.getDataTracker().get(GestaltBase.IS_INTRO)) {
+                this.introAnimationState.startIfNotRunning(gestalt.age);
+                anyOtherAnimationRunning = true;
+            } else {
+                this.introAnimationState.stop();
             }
 
             // WindUp animation

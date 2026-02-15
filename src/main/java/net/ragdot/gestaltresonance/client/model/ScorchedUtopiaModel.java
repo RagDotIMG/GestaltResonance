@@ -175,6 +175,7 @@ public class ScorchedUtopiaModel extends SinglePartEntityModel<ScorchedUtopia> {
   this.updateAnimation(entity.animationHelper.guardAnimationState, ScorchedUtopiaAnimation.Guard, ageInTicks, 1f);
   this.updateAnimation(entity.animationHelper.throwAnimationState, ScorchedUtopiaAnimation.Throw, ageInTicks, 1f);
   this.updateAnimation(entity.animationHelper.grabAnimationState, ScorchedUtopiaAnimation.grab, ageInTicks, 1f);
+  this.updateAnimation(entity.animationHelper.introAnimationState, ScorchedUtopiaAnimation.Intro, ageInTicks, 1f);
   this.updateAnimation(entity.animationHelper.windUpAnimationState, ScorchedUtopiaAnimation.WindUp, ageInTicks, 1f);
   this.updateAnimation(entity.animationHelper.punchAnimationState, ScorchedUtopiaAnimation.Punch, ageInTicks, 2f);
 	}

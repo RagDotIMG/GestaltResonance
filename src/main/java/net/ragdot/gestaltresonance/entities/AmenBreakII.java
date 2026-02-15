@@ -3,7 +3,9 @@ import net.ragdot.gestaltresonance.util.IGestaltPlayer;
 
 import net.minecraft.entity.EntityType;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.sound.SoundCategory;
 import net.minecraft.util.Identifier;
+import net.ragdot.gestaltresonance.sound.ModSounds;
 import net.minecraft.world.World;
 
 /**
@@ -71,6 +73,8 @@ public class AmenBreakII extends AmenBreak {
 
         // Start Futurama session (record 6s, reset, replay 6s).
         net.ragdot.gestaltresonance.util.FuturamaManager.tryStart(player);
+
+        player.getWorld().playSoundFromEntity(null, player, ModSounds.FUTURAMA_RECORDING, SoundCategory.PLAYERS, 1.0f, 1.0f);
 
         this.setStamina(Math.max(0.0f, this.getStamina() - 20.0f));
         this.futuramaMaxCooldown = getFuturamaMaxCooldownTicks();

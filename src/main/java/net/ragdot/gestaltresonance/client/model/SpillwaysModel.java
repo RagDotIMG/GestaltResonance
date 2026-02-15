@@ -131,6 +131,7 @@ public class SpillwaysModel extends SinglePartEntityModel<Spillways> {
         this.updateAnimation(entity.animationHelper.guardAnimationState, SpillwaysAnimation.Guard, ageInTicks, 1f);
         this.updateAnimation(entity.animationHelper.throwAnimationState, SpillwaysAnimation.Throw, ageInTicks, 1f);
         this.updateAnimation(entity.animationHelper.grabAnimationState, SpillwaysAnimation.grab, ageInTicks, 1f);
+        this.updateAnimation(entity.animationHelper.introAnimationState, SpillwaysAnimation.Intro, ageInTicks, 1f);
         this.updateAnimation(entity.animationHelper.windUpAnimationState, SpillwaysAnimation.WindUp, ageInTicks, 1f);
         this.updateAnimation(entity.animationHelper.punchAnimationState, SpillwaysAnimation.Punch, ageInTicks, 2f);
     }

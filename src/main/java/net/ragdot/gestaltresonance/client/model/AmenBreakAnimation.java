@@ -9,7 +9,7 @@ import net.minecraft.client.render.entity.animation.Transformation;
 
 public class AmenBreakAnimation {
 
-	public static final Animation Intro = Animation.Builder.create(0.0F)
+	public static final Animation Intro = Animation.Builder.create(1.25F)
 			.addBoneAnimation("Head", new Transformation(Transformation.Targets.ROTATE,
 					new Keyframe(0.0F, AnimationHelper.createRotationalVector(-20.289F, -68.3328F, 25.7546F), Transformation.Interpolations.CUBIC)
 			))
